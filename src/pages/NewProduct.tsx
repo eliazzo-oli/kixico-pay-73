@@ -1,0 +1,367 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { TrialBanner } from '@/components/TrialBanner';
+import { ArrowLeft, Home, Upload, X } from 'lucide-react';
+
+export default function NewProduct() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+  });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  const formatPrice = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Adiciona pontos a cada 3 dígitos da direita para a esquerda
+    return numbers.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
+    if (name === 'price') {
+      const formattedValue = formatPrice(value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: formattedValue,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview('');
+  };
+
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate optimal dimensions (max 800x600)
+        const maxWidth = 800;
+        const maxHeight = 600;
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            } else {
+              resolve(file);
+            }
+          },
+          'image/jpeg',
+          0.8 // 80% quality
+        );
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      // Compress image before upload
+      const compressedFile = await compressImage(file);
+      
+      const fileExt = 'jpg'; // Always save as JPG for better compression
+      const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, compressedFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Remove pontos antes de converter para número
+      const priceValue = formData.price.replace(/\./g, '');
+      const price = parseFloat(priceValue);
+      if (isNaN(price) || price <= 0) {
+        toast({
+          title: 'Erro',
+          description: 'Por favor, insira um preço válido',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let imageUrl = null;
+      
+      // Upload image if selected
+      if (selectedImage) {
+        imageUrl = await uploadImage(selectedImage);
+        if (!imageUrl) {
+          toast({
+            title: 'Erro',
+            description: 'Erro ao fazer upload da imagem. Tente novamente.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+
+      const { error } = await supabase
+        .from('products')
+        .insert({
+          user_id: user?.id,
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          price: price, // Price is already in AOA as integer
+          image_url: imageUrl,
+          active: true,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Sucesso',
+        description: 'Produto criado com sucesso!',
+      });
+
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error creating product:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao criar produto. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-primary">
+              Novo Produto
+            </h1>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2"
+          >
+            <Home className="w-4 h-4" />
+            Dashboard
+          </Button>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
+        <TrialBanner />
+        <div className="max-w-2xl mx-auto">
+          <Card className="border-border/50 shadow-elegant">
+            <CardHeader>
+              <CardTitle className="text-foreground">Cadastrar Produto</CardTitle>
+              <CardDescription>
+                Preencha as informações do seu produto para criar um link de pagamento
+              </CardDescription>
+            </CardHeader>
+
+            <form onSubmit={handleSubmit}>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome do Produto *</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Ex: Curso de Marketing Digital"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="price">Preço (AOA) *</Label>
+                  <Input
+                    id="price"
+                    name="price"
+                    type="text"
+                    value={formData.price}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="100.000"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="Descreva seu produto..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Imagem do Produto</Label>
+                  <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center">
+                    {!imagePreview ? (
+                      <div>
+                        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                        <div className="space-y-2">
+                          <p className="text-sm text-muted-foreground">
+                            Clique para selecionar uma imagem ou arraste aqui
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            PNG, JPG ou JPEG até 5MB
+                          </p>
+                        </div>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="mt-4 cursor-pointer"
+                        />
+                      </div>
+                    ) : (
+                      <div className="relative">
+                         <img
+                           src={imagePreview}
+                           alt="Preview"
+                           className="max-w-full h-48 object-cover rounded-lg mx-auto"
+                           loading="lazy"
+                         />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={removeImage}
+                          className="absolute top-2 right-2 p-1 h-8 w-8"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {selectedImage?.name}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+
+              <div className="p-6 pt-0">
+                <div className="flex gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate('/dashboard')}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="premium"
+                    disabled={isLoading}
+                    className="flex-1"
+                  >
+                    {isLoading ? 'Criando...' : 'Criar Produto'}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* KixicoPay Design System - Plataforma de pagamentos para Angola
+Cores preto e roxo - Elegância e modernidade
+*/
+
+@layer base {
+  :root {
+    /* Base colors - Tema claro com preto e roxo */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 5%;
+
+    /* Card colors */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
+
+    /* Popover colors */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 5%;
+
+    /* Primary brand - Roxo vibrante */
+    --primary: 267 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 267 100% 40%;
+
+    /* Secondary - Roxo mais escuro */
+    --secondary: 267 100% 30%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Accent - Roxo claro */
+    --accent: 267 100% 95%;
+    --accent-foreground: 267 100% 30%;
+
+    /* Muted colors */
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 45%;
+
+    /* Status colors */
+    --success: 267 100% 50%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border and input */
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 267 100% 50%;
+
+    /* Gradients - removidos para usar cores sólidas
+    --gradient-primary: linear-gradient(135deg, hsl(267 100% 50%), hsl(267 100% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(267 100% 30%), hsl(267 100% 40%));
+    --gradient-hero: linear-gradient(135deg, hsl(267 100% 50%) 0%, hsl(0 0% 5%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(267 20% 98%) 100%);
+    */
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px hsl(0 0% 5% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 5% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 5% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 5% / 0.1);
+    --shadow-primary: 0 10px 30px -10px hsl(267 100% 50% / 0.3);
+
+    /* Animations */
+    --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s ease-out;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 5%;
+    --sidebar-primary: 267 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 267 100% 95%;
+    --sidebar-accent-foreground: 267 100% 30%;
+    --sidebar-border: 0 0% 85%;
+    --sidebar-ring: 267 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Smooth theme transitions */
+  * {
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Proteção de imagens - Bloqueia download e captura */
+  img {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    -moz-user-drag: none;
+    -ms-user-drag: none;
+    user-drag: none;
+    pointer-events: auto;
+    -webkit-touch-callout: none;
+  }
+
+  /* Bloqueia clique direito em imagens */
+  img {
+    -webkit-context-menu: none;
+    context-menu: none;
+  }
+
+  /* Desabilita arrastar imagens */
+  img::selection {
+    background: transparent;
+  }
+
+  img::-moz-selection {
+    background: transparent;
+  }
+
+  /* Proteção contra print screen */
+  @media print {
+    img {
+      display: none !important;
+    }
+  }
+
+  /* Bloqueia F12 e ferramentas de desenvolvedor */
+  body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Permite seleção de texto em elementos específicos */
+  p, span, div, h1, h2, h3, h4, h5, h6, input, textarea, button {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+
+  /* Animação contínua para logotipos - Tic-tac suave */
+  @keyframes logo-tick-tock {
+    0%, 100% { 
+      transform: rotate(-2deg) scale(1);
+    }
+    50% { 
+      transform: rotate(2deg) scale(1.02);
+    }
+  }
+
+  .logo-animated {
+    animation: logo-tick-tock 3s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  /* Otimização de imagens para carregamento rápido */
+  .optimized-image {
+    image-rendering: optimizeQuality;
+    image-rendering: -webkit-optimize-contrast;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Animação suave para imagens da página inicial */
+  @keyframes gentle-float {
+    0%, 100% { 
+      transform: translateY(0px) scale(1);
+    }
+    50% { 
+      transform: translateY(-10px) scale(1.01);
+    }
+  }
+
+  .image-float {
+    animation: gentle-float 4s ease-in-out infinite;
+  }
+}
