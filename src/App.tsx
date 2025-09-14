@@ -44,6 +44,7 @@ import AdminTransactions from "./pages/AdminTransactions";
 import AdminReports from "./pages/AdminReports";
 import AdminWithdrawals from "./pages/AdminWithdrawals";
 import Invoice from "./pages/Invoice";
+import Webhooks from "./pages/Webhooks";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +91,11 @@ const App = () => {
               <Route path="/dashboard/withdrawals" element={
                 <ProtectedRoute>
                   <DashboardWithdrawals />
+                </ProtectedRoute>
+              } />
+              <Route path="/webhooks" element={
+                <ProtectedRoute>
+                  <Webhooks />
                 </ProtectedRoute>
               } />
               <Route path="/perfil" element={

@@ -321,6 +321,126 @@ export type Database = {
           },
         ]
       }
+      webhook_attempts: {
+        Row: {
+          attempt_number: number
+          created_at: string
+          error_message: string | null
+          http_status: number | null
+          id: string
+          next_retry_at: string | null
+          response_body: string | null
+          succeeded: boolean
+          webhook_endpoint_id: string
+          webhook_event_id: string
+        }
+        Insert: {
+          attempt_number?: number
+          created_at?: string
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          next_retry_at?: string | null
+          response_body?: string | null
+          succeeded?: boolean
+          webhook_endpoint_id: string
+          webhook_event_id: string
+        }
+        Update: {
+          attempt_number?: number
+          created_at?: string
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          next_retry_at?: string | null
+          response_body?: string | null
+          succeeded?: boolean
+          webhook_endpoint_id?: string
+          webhook_event_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_attempts_webhook_endpoint_id_fkey"
+            columns: ["webhook_endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_attempts_webhook_event_id_fkey"
+            columns: ["webhook_event_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_endpoints: {
+        Row: {
+          created_at: string
+          events: string[]
+          failure_count: number
+          id: string
+          is_active: boolean
+          last_failure_at: string | null
+          secret_key: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          events?: string[]
+          failure_count?: number
+          id?: string
+          is_active?: boolean
+          last_failure_at?: string | null
+          secret_key: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          events?: string[]
+          failure_count?: number
+          id?: string
+          is_active?: boolean
+          last_failure_at?: string | null
+          secret_key?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_events: {
+        Row: {
+          api_version: string
+          created_at: string
+          data: Json
+          event_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          api_version?: string
+          created_at?: string
+          data: Json
+          event_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          api_version?: string
+          created_at?: string
+          data?: Json
+          event_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       withdrawals: {
         Row: {
           account_number: string | null
@@ -359,6 +479,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_webhook_event: {
+        Args: { p_data: Json; p_event_type: string; p_user_id: string }
+        Returns: string
+      }
+      generate_webhook_secret: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_current_plan: {
         Args: { user_uuid: string }
         Returns: {

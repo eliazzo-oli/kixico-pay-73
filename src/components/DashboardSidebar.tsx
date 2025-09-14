@@ -29,6 +29,11 @@ const navigationItems = [
     icon: Package,
   },
   {
+    title: 'Webhooks',
+    url: '/webhooks',
+    icon: TrendingUp,
+  },
+  {
     title: 'Saques',
     url: '/dashboard/withdrawals',
     icon: DollarSign,
