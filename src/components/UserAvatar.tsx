@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Settings, LogOut, User, Shield } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 interface UserProfile {
   id: string;
@@ -102,6 +103,8 @@ export function UserAvatar({ userId, userEmail, onSignOut }: UserAvatarProps) {
       <span className="text-sm text-muted-foreground hidden sm:block">
         Olá, {displayName}
       </span>
+      
+      <ThemeToggle />
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

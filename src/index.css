@@ -50,13 +50,6 @@ Cores preto e roxo - Elegância e modernidade
     --input: 0 0% 85%;
     --ring: 267 100% 50%;
 
-    /* Gradients - removidos para usar cores sólidas
-    --gradient-primary: linear-gradient(135deg, hsl(267 100% 50%), hsl(267 100% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(267 100% 30%), hsl(267 100% 40%));
-    --gradient-hero: linear-gradient(135deg, hsl(267 100% 50%) 0%, hsl(0 0% 5%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(267 20% 98%) 100%);
-    */
-
     /* Shadows */
     --shadow-sm: 0 1px 2px hsl(0 0% 5% / 0.05);
     --shadow-md: 0 4px 6px -1px hsl(0 0% 5% / 0.1);
@@ -78,6 +71,67 @@ Cores preto e roxo - Elegância e modernidade
     --sidebar-accent-foreground: 267 100% 30%;
     --sidebar-border: 0 0% 85%;
     --sidebar-ring: 267 100% 50%;
+  }
+
+  /* Tema escuro */
+  .dark {
+    /* Base colors - Tema escuro com cinza e roxo */
+    --background: 0 0% 5%;
+    --foreground: 0 0% 95%;
+
+    /* Card colors */
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 95%;
+
+    /* Popover colors */
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Primary brand - Roxo mais claro para contraste */
+    --primary: 267 100% 60%;
+    --primary-foreground: 0 0% 5%;
+    --primary-hover: 267 100% 70%;
+
+    /* Secondary - Roxo escuro ajustado */
+    --secondary: 267 50% 20%;
+    --secondary-foreground: 0 0% 95%;
+
+    /* Accent - Roxo escuro */
+    --accent: 267 50% 12%;
+    --accent-foreground: 267 100% 70%;
+
+    /* Muted colors */
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+
+    /* Status colors ajustadas para tema escuro */
+    --success: 267 100% 60%;
+    --success-foreground: 0 0% 5%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 0 0% 5%;
+    --destructive: 0 84% 70%;
+    --destructive-foreground: 0 0% 5%;
+
+    /* Border and input */
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 267 100% 60%;
+
+    /* Shadows ajustadas para tema escuro */
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.4);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.5);
+    --shadow-primary: 0 10px 30px -10px hsl(267 100% 60% / 0.4);
+
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 267 100% 60%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 267 50% 12%;
+    --sidebar-accent-foreground: 267 100% 70%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 267 100% 60%;
   }
 }
 

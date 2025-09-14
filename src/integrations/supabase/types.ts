@@ -161,6 +161,7 @@ export type Database = {
           name: string
           phone: string | null
           plano_assinatura: string
+          preferred_theme: string | null
           status: string
           trial_end_date: string | null
           updated_at: string
@@ -180,6 +181,7 @@ export type Database = {
           name: string
           phone?: string | null
           plano_assinatura?: string
+          preferred_theme?: string | null
           status?: string
           trial_end_date?: string | null
           updated_at?: string
@@ -199,6 +201,7 @@ export type Database = {
           name?: string
           phone?: string | null
           plano_assinatura?: string
+          preferred_theme?: string | null
           status?: string
           trial_end_date?: string | null
           updated_at?: string
