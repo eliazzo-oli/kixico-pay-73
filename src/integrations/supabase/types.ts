@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          discount_type: string
+          expiry_date: string | null
+          id: string
+          is_active: boolean
+          product_id: string
+          updated_at: string
+          usage_limit: number | null
+          used_count: number
+          user_id: string
+          value: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          discount_type: string
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean
+          product_id: string
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+          user_id: string
+          value: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          discount_type?: string
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean
+          product_id?: string
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_coupons_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_read_status: {
         Row: {
           created_at: string | null

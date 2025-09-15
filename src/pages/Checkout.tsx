@@ -46,6 +46,16 @@ export default function Checkout() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Coupon states
+  const [showCouponField, setShowCouponField] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount_type: 'percentage' | 'fixed';
+    discount_value: number;
+  } | null>(null);
+  const [isCouponLoading, setIsCouponLoading] = useState(false);
 
   useEffect(() => {
     fetchProduct();
@@ -127,6 +137,70 @@ export default function Checkout() {
     }));
   };
 
+  const calculateDiscountedPrice = (originalPrice: number) => {
+    if (!appliedCoupon) return originalPrice;
+    
+    if (appliedCoupon.discount_type === 'percentage') {
+      return originalPrice * (1 - appliedCoupon.discount_value / 100);
+    } else {
+      return Math.max(0, originalPrice - appliedCoupon.discount_value);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || !product) return;
+    
+    setIsCouponLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-coupon', {
+        body: {
+          product_id: product.id,
+          coupon_code: couponCode.trim()
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.valid) {
+        setAppliedCoupon({
+          code: couponCode.trim().toUpperCase(),
+          discount_type: data.discount_type,
+          discount_value: data.discount_value
+        });
+        toast({
+          title: 'Cupão aplicado!',
+          description: `Desconto de ${data.discount_type === 'percentage' ? `${data.discount_value}%` : `${formatPriceFromDB(data.discount_value)}`} aplicado.`,
+        });
+        setCouponCode('');
+        setShowCouponField(false);
+      } else {
+        toast({
+          title: 'Cupão inválido',
+          description: data.error || 'O cupão inserido não é válido.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error applying coupon:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao aplicar cupão. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    toast({
+      title: 'Cupão removido',
+      description: 'O desconto foi removido do pedido.',
+    });
+  };
+
   const handlePayment = async () => {
     setIsProcessing(true);
 
@@ -151,7 +225,7 @@ export default function Checkout() {
           user_id: product.user_id,
           customer_email: customerData.email,
           customer_name: customerData.name,
-          amount: product.price,
+          amount: calculateDiscountedPrice(product.price),
           status: selectedPaymentMethod === 'reference' ? 'pending' : 'pending',
           payment_method: selectedPaymentMethod,
           payment_link: `${window.location.origin}/checkout/${product.id}`,
@@ -359,12 +433,34 @@ export default function Checkout() {
                       {product.description}
                     </p>
                   </div>
+                  {/* Applied Coupon Display */}
+                  {appliedCoupon && (
+                    <div className="pt-4 border-t border-border/50">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Preço original:</span>
+                        <span className="text-muted-foreground line-through">
+                          {formatPriceFromDB(product.price)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-green-600">
+                          Desconto ({appliedCoupon.code}):
+                        </span>
+                        <span className="text-green-600">
+                          -{appliedCoupon.discount_type === 'percentage' 
+                            ? `${appliedCoupon.discount_value}%` 
+                            : formatPriceFromDB(appliedCoupon.discount_value)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between items-center pt-4 border-t border-border/50">
                     <span className="text-lg font-medium text-foreground">Total:</span>
                     <span className="text-2xl font-bold text-primary">
                       {planData ? 
-                        `${formatPriceFromDB(product.price)}/mês` :
-                        formatPriceFromDB(product.price)}
+                        `${formatPriceFromDB(calculateDiscountedPrice(product.price))}/mês` :
+                        formatPriceFromDB(calculateDiscountedPrice(product.price))}
                     </span>
                   </div>
                 </div>
@@ -455,6 +551,63 @@ export default function Checkout() {
                     ))}
                   </div>
                   
+                </div>
+
+                {/* Coupon Section */}
+                <div className="space-y-4">
+                  {!appliedCoupon ? (
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowCouponField(!showCouponField)}
+                        className="text-primary hover:text-primary/80 text-sm flex items-center gap-1 transition-colors"
+                      >
+                        ▶ Tem um cupão de desconto?
+                      </button>
+                      
+                      {showCouponField && (
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Digite o código do cupão"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                            className="flex-1"
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleApplyCoupon}
+                            disabled={!couponCode.trim() || isCouponLoading}
+                            size="sm"
+                          >
+                            {isCouponLoading ? 'A aplicar...' : 'Aplicar'}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-600 text-sm font-medium">
+                          Cupão aplicado: {appliedCoupon.code}
+                        </span>
+                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                          {appliedCoupon.discount_type === 'percentage' 
+                            ? `${appliedCoupon.discount_value}%` 
+                            : formatPriceFromDB(appliedCoupon.discount_value)} desconto
+                        </Badge>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemoveCoupon}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <Button

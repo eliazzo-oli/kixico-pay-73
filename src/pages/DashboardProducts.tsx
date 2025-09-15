@@ -41,6 +41,7 @@ import { usePlan } from '@/hooks/usePlan';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { TrialBanner } from '@/components/TrialBanner';
+import CouponManager from '@/components/CouponManager';
 
 interface Product {
   id: string;
@@ -611,7 +612,7 @@ export default function DashboardProducts() {
 
             {/* Product View Dialog */}
             <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-              <DialogContent className="sm:max-w-lg">
+              <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Visualizar Produto</DialogTitle>
                   <DialogDescription>
@@ -680,6 +681,14 @@ export default function DashboardProducts() {
                           <Copy className="h-4 w-4" />
                         </Button>
                       </div>
+                    </div>
+
+                    {/* Coupon Management Section */}
+                    <div className="pt-4 border-t">
+                      <CouponManager 
+                        productId={viewingProduct.id} 
+                        productName={viewingProduct.name} 
+                      />
                     </div>
 
                     <div className="flex justify-end space-x-2 pt-4">

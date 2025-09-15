@@ -1,1 +1,7 @@
 project_id = "tumanpeywddnixgyfale"
+
+[functions.validate-coupon]
+verify_jwt = false
+
+[functions.manage-coupons]
+verify_jwt = true
