@@ -16,6 +16,7 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { WebhookDocumentation } from '@/components/WebhookDocumentation';
 import { 
   Plus, 
   Settings, 
@@ -386,6 +387,7 @@ export default function Webhooks() {
                 <TabsList>
                   <TabsTrigger value="endpoints">Endpoints</TabsTrigger>
                   <TabsTrigger value="logs">Logs de Eventos</TabsTrigger>
+                  <TabsTrigger value="docs">Documentação</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="endpoints" className="space-y-6">
@@ -502,6 +504,8 @@ export default function Webhooks() {
                 </TabsContent>
                 
                 <TabsContent value="logs" className="space-y-6">
+                  <WebhookDocumentation />
+                  
                   <Card>
                     <CardHeader>
                       <CardTitle>Logs de Tentativas de Webhook</CardTitle>
@@ -575,6 +579,10 @@ export default function Webhooks() {
                       )}
                     </CardContent>
                   </Card>
+                </TabsContent>
+                
+                <TabsContent value="docs" className="space-y-6">
+                  <WebhookDocumentation />
                 </TabsContent>
               </Tabs>
             </div>
