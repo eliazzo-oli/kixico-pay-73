@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatPriceFromDB } from '@/lib/utils';
-import { CreditCard, Smartphone, Building, Receipt, Banknote, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -270,26 +270,20 @@ export default function Checkout() {
     {
       id: 'reference',
       name: 'Pagamento por Referência',
-      icon: Receipt,
+      logo: '/assets/express.png',
       description: 'Pague com referência bancária',
     },
     {
       id: 'multicaixa',
       name: 'Multicaixa Express',
-      icon: CreditCard,
+      logo: '/assets/multicaixa.png',
       description: 'Pagamento via Multicaixa',
     },
     {
-      id: 'unitel_money',
-      name: 'Unitel Money',
-      icon: Smartphone,
-      description: 'Carteira digital Unitel',
-    },
-    {
       id: 'paypal_ao',
-      name: 'PayPal AO',
-      icon: Banknote,
-      description: 'PayPal Angola',
+      name: 'PayPay Afri',
+      logo: '/assets/paypay_afri.png',
+      description: 'PayPay África',
     },
   ];
 
@@ -433,36 +427,32 @@ export default function Checkout() {
                 <div className="space-y-4">
                   <h4 className="font-medium text-foreground">Método de Pagamento</h4>
                   
-                  <div className="space-y-3">
-                {paymentMethods.map((method) => {
-                      const Icon = method.icon;
-                      return (
-                        <div
-                          key={method.id}
-                          className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                            selectedPaymentMethod === method.id
-                              ? 'border-primary bg-primary/10 shadow-md'
-                              : 'border-border/50 hover:border-primary/50 hover:shadow-sm'
-                          }`}
-                          onClick={() => setSelectedPaymentMethod(method.id)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className="h-5 w-5 text-primary" />
-                            <div className="flex-1">
-                              <h5 className="font-medium text-foreground">
-                                {method.name}
-                              </h5>
-                              <p className="text-sm text-muted-foreground">
-                                {method.description}
-                              </p>
-                            </div>
-                            {selectedPaymentMethod === method.id && (
-                              <Badge variant="default">Selecionado</Badge>
-                            )}
-                          </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    {paymentMethods.map((method) => (
+                      <div
+                        key={method.id}
+                        className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 text-center ${
+                          selectedPaymentMethod === method.id
+                            ? 'border-primary bg-primary/10 shadow-md'
+                            : 'border-border/50 hover:border-primary/50 hover:shadow-sm'
+                        }`}
+                        onClick={() => setSelectedPaymentMethod(method.id)}
+                      >
+                        <div className="flex flex-col items-center gap-3">
+                          <img 
+                            src={method.logo} 
+                            alt={method.name}
+                            className="h-12 w-auto object-contain"
+                          />
+                          <h5 className="font-medium text-foreground text-sm">
+                            {method.name}
+                          </h5>
+                          {selectedPaymentMethod === method.id && (
+                            <Badge variant="default" className="mt-1">Selecionado</Badge>
+                          )}
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                   
                 </div>
