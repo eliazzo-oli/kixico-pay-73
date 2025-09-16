@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.manage-coupons]
 verify_jwt = true
+
+[functions.process-withdrawal]
+verify_jwt = true
+
+[functions.admin-approve-withdrawal]
+verify_jwt = true
+
+[functions.admin-manual-adjustment]
+verify_jwt = true

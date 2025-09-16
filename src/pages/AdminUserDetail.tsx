@@ -324,17 +324,14 @@ export default function AdminUserDetail() {
       const transactionAmount = type === 'debit' ? -amount : amount;
       const paymentMethod = type === 'debit' ? 'debito' : 'credito';
 
-      const { error } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: id,
-          amount: transactionAmount,
-          status: 'completed',
-          product_id: null,
-          customer_email: adjustmentForm.justification,
-          customer_name: `Ajuste Manual - ${type === 'credit' ? 'Crédito' : 'Débito'}`,
-          payment_method: paymentMethod
-        });
+      const { data, error } = await supabase.functions.invoke('admin-manual-adjustment', {
+        body: {
+          userId: id,
+          amount: amount,
+          type,
+          justification: adjustmentForm.justification,
+        },
+      });
 
       if (error) throw error;
 

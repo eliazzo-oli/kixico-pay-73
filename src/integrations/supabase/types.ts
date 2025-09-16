@@ -271,7 +271,7 @@ export type Database = {
           id: string
           payment_link: string | null
           payment_method: string | null
-          product_id: string
+          product_id: string | null
           status: string
           updated_at: string
           user_id: string
@@ -284,7 +284,7 @@ export type Database = {
           id?: string
           payment_link?: string | null
           payment_method?: string | null
-          product_id: string
+          product_id?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -297,7 +297,7 @@ export type Database = {
           id?: string
           payment_link?: string | null
           payment_method?: string | null
-          product_id?: string
+          product_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string
