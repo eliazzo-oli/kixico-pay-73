@@ -48,67 +48,56 @@ serve(async (req) => {
       );
     }
 
-    // Verificar saldo do usuário
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('balance')
-      .eq('user_id', user.id)
-      .single();
+    // Verificar saldo do usuário calculando das transações
+    const { data: transactionData, error: transactionError } = await supabase
+      .from('transactions')
+      .select('amount, status, payment_method')
+      .eq('user_id', user.id);
 
-    if (profileError) {
-      console.error('Erro ao buscar perfil:', profileError);
+    if (transactionError) {
+      console.error('Erro ao buscar transações:', transactionError);
       return new Response(
         JSON.stringify({ error: 'Erro ao verificar saldo do usuário' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!profile || profile.balance < amount) {
+    // Calculate current balance
+    let currentBalance = 0;
+    transactionData?.forEach(transaction => {
+      if (transaction.status === 'completed') {
+        if (transaction.payment_method === 'saque' || transaction.payment_method === 'taxa' || transaction.payment_method === 'debito') {
+          // These are debits (negative amounts)
+          currentBalance += Number(transaction.amount);
+        } else {
+          // These are credits (sales)
+          currentBalance += Number(transaction.amount);
+        }
+      }
+    });
+
+    if (currentBalance < amount) {
       return new Response(
         JSON.stringify({ error: 'Saldo insuficiente para o saque' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Iniciar transação do banco de dados
-    // Primeiro, subtrair o valor do saldo
-    const newBalance = profile.balance - amount;
-    const { error: updateBalanceError } = await supabase
-      .from('profiles')
-      .update({ balance: newBalance })
-      .eq('user_id', user.id);
-
-    if (updateBalanceError) {
-      console.error('Erro ao atualizar saldo:', updateBalanceError);
-      return new Response(
-        JSON.stringify({ error: 'Erro ao processar saque' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Criar registro de saque na tabela transactions
-    const { data: transaction, error: transactionError } = await supabase
-      .from('transactions')
+    // Criar registro de saque na tabela withdrawals
+    const { data: withdrawal, error: withdrawalError } = await supabase
+      .from('withdrawals')
       .insert({
         user_id: user.id,
         amount: amount,
         status: 'pending',
-        product_id: null, // Null para saques
-        customer_email: '', // Email vazio para saques
-        payment_method: 'saque'
+        bank_name: bank_name || null,
+        account_number: account_number || null
       })
       .select()
       .single();
 
-    if (transactionError) {
-      console.error('Erro ao criar transação de saque:', transactionError);
-      
-      // Reverter o saldo se houve erro
-      await supabase
-        .from('profiles')
-        .update({ balance: profile.balance })
-        .eq('user_id', user.id);
-
+    if (withdrawalError) {
+      console.error('Erro ao criar solicitação de saque:', withdrawalError);
       return new Response(
         JSON.stringify({ error: 'Erro ao criar solicitação de saque' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -116,19 +105,19 @@ serve(async (req) => {
     }
 
     // Log da operação
-    console.log(`Saque processado: Usuário ${user.id}, Valor: ${amount}, ID: ${transaction.id}`);
+    console.log(`Saque solicitado: Usuário ${user.id}, Valor: ${amount}, ID: ${withdrawal.id}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Solicitação de saque criada com sucesso',
-        transaction: {
-          id: transaction.id,
-          amount: transaction.amount,
-          status: transaction.status,
-          created_at: transaction.created_at
+        withdrawal: {
+          id: withdrawal.id,
+          amount: withdrawal.amount,
+          status: withdrawal.status,
+          created_at: withdrawal.created_at
         },
-        new_balance: newBalance
+        current_balance: currentBalance
       }),
       { 
         status: 200, 

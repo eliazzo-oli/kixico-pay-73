@@ -84,6 +84,28 @@ export default function AdminWithdrawals() {
 
   const updateWithdrawalStatus = async (withdrawalId: string, newStatus: string) => {
     try {
+      if (newStatus === 'approved') {
+        // Get withdrawal details
+        const withdrawal = withdrawals.find(w => w.id === withdrawalId);
+        if (!withdrawal) throw new Error('Saque não encontrado');
+
+        // Create debit transaction and update withdrawal status in a single operation
+        const { error: transactionError } = await supabase
+          .from('transactions')
+          .insert({
+            user_id: withdrawal.user_id,
+            amount: -withdrawal.amount, // Negative amount for debit
+            status: 'completed',
+            product_id: null,
+            customer_email: 'Sistema',
+            customer_name: 'Saque Aprovado',
+            payment_method: 'saque'
+          });
+
+        if (transactionError) throw transactionError;
+      }
+
+      // Update withdrawal status
       const { error } = await supabase
         .from('withdrawals')
         .update({ status: newStatus })

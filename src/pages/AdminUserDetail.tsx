@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, User, DollarSign, ShoppingCart, CreditCard, Package, Save, Ban, UserCheck } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { UserAvatar } from '@/components/UserAvatar';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,7 +39,6 @@ interface EditableUserData {
   name: string;
   email: string;
   phone: string;
-  balance: string;
   plano_assinatura: string;
   bank_name: string;
   account_number: string;
@@ -89,7 +89,6 @@ export default function AdminUserDetail() {
     name: '',
     email: '',
     phone: '',
-    balance: '0',
     plano_assinatura: 'basico',
     bank_name: '',
     account_number: '',
@@ -97,6 +96,10 @@ export default function AdminUserDetail() {
     digital_wallet_type: '',
     digital_wallet_identifier: '',
   });
+  const [calculatedBalance, setCalculatedBalance] = useState<number>(0);
+  const [showCreditModal, setShowCreditModal] = useState(false);
+  const [showDebitModal, setShowDebitModal] = useState(false);
+  const [adjustmentForm, setAdjustmentForm] = useState({ amount: '', justification: '' });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
@@ -131,7 +134,6 @@ export default function AdminUserDetail() {
         name: profile.name || '',
         email: profile.email || '',
         phone: profile.phone || '',
-        balance: profile.balance?.toString() || '0',
         plano_assinatura: profile.plano_assinatura || 'basico',
         bank_name: profile.bank_name || '',
         account_number: profile.account_number || '',
@@ -139,6 +141,9 @@ export default function AdminUserDetail() {
         digital_wallet_type: profile.digital_wallet_type === 'none' ? '' : profile.digital_wallet_type || '',
         digital_wallet_identifier: profile.digital_wallet_identifier || '',
       });
+
+      // Calculate balance from transactions
+      await calculateUserBalance(id);
 
       // Fetch user transactions
       const { data: transactionData, error: transactionError } = await supabase
@@ -193,6 +198,36 @@ export default function AdminUserDetail() {
     }
   };
 
+  const calculateUserBalance = async (userId: string) => {
+    try {
+      const { data: transactionData, error } = await supabase
+        .from('transactions')
+        .select('amount, status, payment_method')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      // Calculate balance: credits (completed sales) - debits (withdrawals, fees)
+      let balance = 0;
+      transactionData?.forEach(transaction => {
+        if (transaction.status === 'completed') {
+          if (transaction.payment_method === 'saque' || transaction.payment_method === 'taxa' || transaction.payment_method === 'debito') {
+            // These are debits (negative amounts)
+            balance += Number(transaction.amount);
+          } else {
+            // These are credits (sales)
+            balance += Number(transaction.amount);
+          }
+        }
+      });
+
+      setCalculatedBalance(balance);
+    } catch (error) {
+      console.error('Error calculating balance:', error);
+      setCalculatedBalance(0);
+    }
+  };
+
   const fetchPlans = async () => {
     try {
       const { data: plansData, error } = await supabase
@@ -223,7 +258,6 @@ export default function AdminUserDetail() {
           name: editableData.name,
           email: editableData.email,
           phone: editableData.phone,
-          balance: parseFloat(editableData.balance) || 0,
           plano_assinatura: editableData.plano_assinatura,
           bank_name: editableData.bank_name,
           account_number: editableData.account_number,
@@ -272,6 +306,50 @@ export default function AdminUserDetail() {
 
   const handleInputChange = (field: keyof EditableUserData, value: string) => {
     setEditableData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAdjustment = async (type: 'credit' | 'debit') => {
+    if (!id || !adjustmentForm.amount || !adjustmentForm.justification) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    const amount = parseFloat(adjustmentForm.amount);
+    if (amount <= 0) {
+      toast.error('O valor deve ser maior que zero');
+      return;
+    }
+
+    try {
+      const transactionAmount = type === 'debit' ? -amount : amount;
+      const paymentMethod = type === 'debit' ? 'debito' : 'credito';
+
+      const { error } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: id,
+          amount: transactionAmount,
+          status: 'completed',
+          product_id: null,
+          customer_email: adjustmentForm.justification,
+          customer_name: `Ajuste Manual - ${type === 'credit' ? 'Crédito' : 'Débito'}`,
+          payment_method: paymentMethod
+        });
+
+      if (error) throw error;
+
+      toast.success(`${type === 'credit' ? 'Crédito' : 'Débito'} aplicado com sucesso!`);
+      setAdjustmentForm({ amount: '', justification: '' });
+      setShowCreditModal(false);
+      setShowDebitModal(false);
+      
+      // Refresh data
+      await calculateUserBalance(id);
+      fetchUserDetail();
+    } catch (error) {
+      console.error('Error creating adjustment:', error);
+      toast.error('Erro ao aplicar ajuste');
+    }
   };
 
   const handleSuspendUser = async () => {
@@ -436,11 +514,14 @@ export default function AdminUserDetail() {
                     </CardTitle>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-foreground">
-                      {userDetail.balance.toLocaleString('pt-AO')} AOA
-                    </div>
-                  </CardContent>
+                   <CardContent>
+                     <div className="text-2xl font-bold text-foreground">
+                       {calculatedBalance.toLocaleString('pt-AO')} AOA
+                     </div>
+                     <p className="text-xs text-muted-foreground mt-1">
+                       Calculado automaticamente
+                     </p>
+                   </CardContent>
                 </Card>
 
                 <Card className="border-border/50 shadow-lg">
@@ -535,17 +616,37 @@ export default function AdminUserDetail() {
                         placeholder="Telefone do usuário"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="balance">Saldo (AOA)</Label>
-                      <Input
-                        id="balance"
-                        type="number"
-                        step="0.01"
-                        value={editableData.balance}
-                        onChange={(e) => handleInputChange('balance', e.target.value)}
-                        placeholder="Saldo em Kwanzas"
-                      />
-                    </div>
+                     <div className="space-y-2">
+                       <Label>Saldo Atual (Read-Only)</Label>
+                       <div className="px-3 py-2 bg-muted rounded-md text-sm font-mono">
+                         {calculatedBalance.toLocaleString('pt-AO')} AOA
+                       </div>
+                       <p className="text-xs text-muted-foreground">
+                         Calculado automaticamente a partir das transações
+                       </p>
+                     </div>
+                     <div className="flex gap-2">
+                       <Button
+                         type="button"
+                         variant="outline"
+                         size="sm"
+                         onClick={() => setShowCreditModal(true)}
+                         className="flex-1"
+                       >
+                         <DollarSign className="h-4 w-4 mr-2" />
+                         Adicionar Crédito
+                       </Button>
+                       <Button
+                         type="button"
+                         variant="outline"
+                         size="sm"
+                         onClick={() => setShowDebitModal(true)}
+                         className="flex-1"
+                       >
+                         <DollarSign className="h-4 w-4 mr-2" />
+                         Aplicar Débito
+                       </Button>
+                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="plan">Plano de Assinatura</Label>
                       <Select
@@ -807,6 +908,94 @@ export default function AdminUserDetail() {
           </main>
         </div>
       </div>
+
+      {/* Credit Adjustment Modal */}
+      <Dialog open={showCreditModal} onOpenChange={setShowCreditModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Crédito</DialogTitle>
+            <DialogDescription>
+              Adicione crédito à conta do usuário. Esta ação criará uma nova transação.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="credit-amount">Valor (AOA)</Label>
+              <Input
+                id="credit-amount"
+                type="number"
+                step="0.01"
+                value={adjustmentForm.amount}
+                onChange={(e) => setAdjustmentForm(prev => ({ ...prev, amount: e.target.value }))}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="credit-justification">Justificativa (Obrigatória)</Label>
+              <Input
+                id="credit-justification"
+                value={adjustmentForm.justification}
+                onChange={(e) => setAdjustmentForm(prev => ({ ...prev, justification: e.target.value }))}
+                placeholder="Ex: Bônus de desempenho, correção de erro..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreditModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => handleAdjustment('credit')}>
+              Adicionar Crédito
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Debit Adjustment Modal */}
+      <Dialog open={showDebitModal} onOpenChange={setShowDebitModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aplicar Débito</DialogTitle>
+            <DialogDescription>
+              Remova fundos da conta do usuário. Esta ação criará uma nova transação.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="debit-amount">Valor (AOA)</Label>
+              <Input
+                id="debit-amount"
+                type="number"
+                step="0.01"
+                value={adjustmentForm.amount}
+                onChange={(e) => setAdjustmentForm(prev => ({ ...prev, amount: e.target.value }))}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="debit-justification">Justificativa (Obrigatória)</Label>
+              <Input
+                id="debit-justification"
+                value={adjustmentForm.justification}
+                onChange={(e) => setAdjustmentForm(prev => ({ ...prev, justification: e.target.value }))}
+                placeholder="Ex: Taxa administrativa, correção de erro..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDebitModal(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => handleAdjustment('debit')}
+            >
+              Aplicar Débito
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </SidebarProvider>
   );
 }
