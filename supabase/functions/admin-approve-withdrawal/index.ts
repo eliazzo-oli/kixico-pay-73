@@ -77,6 +77,16 @@ serve(async (req) => {
     }
 
     // Criar transação de débito (valor negativo)
+    console.log('Tentando criar transação:', {
+      user_id: withdrawal.user_id,
+      amount: -Number(withdrawal.amount),
+      status: 'completed',
+      product_id: null,
+      customer_email: note || 'Saque aprovado',
+      customer_name: 'Sistema',
+      payment_method: 'saque'
+    });
+
     const { data: tx, error: txError } = await supabase
       .from('transactions')
       .insert({
@@ -92,9 +102,19 @@ serve(async (req) => {
       .single();
 
     if (txError) {
-      console.error('Erro ao criar transação de saque:', txError);
+      console.error('ERRO DETALHADO ao criar transação de saque:', {
+        error: txError,
+        message: txError.message,
+        details: txError.details,
+        hint: txError.hint,
+        code: txError.code
+      });
       return new Response(
-        JSON.stringify({ error: 'Falha ao registrar transação de saque' }),
+        JSON.stringify({ 
+          error: 'Falha ao registrar transação de saque', 
+          details: txError.message,
+          code: txError.code 
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

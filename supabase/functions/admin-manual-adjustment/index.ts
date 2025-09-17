@@ -73,6 +73,16 @@ serve(async (req) => {
     const paymentMethod = type === 'debit' ? 'debito' : 'credito';
     const customerName = `Ajuste Manual - ${type === 'debit' ? 'Débito' : 'Crédito'}`;
 
+    console.log('Tentando criar ajuste manual:', {
+      user_id: userId,
+      amount: txAmount,
+      status: 'completed',
+      product_id: null,
+      customer_email: String(justification),
+      customer_name: customerName,
+      payment_method: paymentMethod
+    });
+
     const { data: tx, error: txError } = await supabase
       .from('transactions')
       .insert({
@@ -88,9 +98,19 @@ serve(async (req) => {
       .single();
 
     if (txError) {
-      console.error('Erro ao criar transação de ajuste:', txError);
+      console.error('ERRO DETALHADO ao criar transação de ajuste:', {
+        error: txError,
+        message: txError.message,
+        details: txError.details,
+        hint: txError.hint,
+        code: txError.code
+      });
       return new Response(
-        JSON.stringify({ error: 'Falha ao registrar ajuste' }),
+        JSON.stringify({ 
+          error: 'Falha ao registrar ajuste', 
+          details: txError.message,
+          code: txError.code 
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
