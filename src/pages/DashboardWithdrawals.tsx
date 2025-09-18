@@ -57,14 +57,32 @@ export default function DashboardWithdrawals() {
     try {
       setLoading(true);
       
-      // Fetch user balance from profiles
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('balance')
+      // Calculate balance based on transactions following the correct formula:
+      // Saldo = (Soma de todas as Vendas + Ajustes de Crédito) - (Saques Aprovados + Ajustes de Débito)
+      const { data: transactionsData, error: transactionsError } = await supabase
+        .from('transactions')
+        .select('amount, status, payment_method, product_id')
         .eq('user_id', user?.id)
-        .single();
+        .eq('status', 'completed');
 
-      if (profileError) throw profileError;
+      if (transactionsError) throw transactionsError;
+
+      let calculatedBalance = 0;
+      
+      // Add sales (transactions with product_id and positive amount)
+      transactionsData?.forEach(transaction => {
+        if (transaction.product_id && transaction.amount > 0) {
+          calculatedBalance += Number(transaction.amount);
+        }
+        // Add manual credit adjustments
+        else if (transaction.payment_method === 'credito') {
+          calculatedBalance += Number(transaction.amount);
+        }
+        // Subtract withdrawals and manual debit adjustments
+        else if (transaction.payment_method === 'saque' || transaction.payment_method === 'debito') {
+          calculatedBalance -= Math.abs(Number(transaction.amount));
+        }
+      });
 
       // Fetch user withdrawals
       const { data: withdrawalsData, error: withdrawalsError } = await supabase
@@ -75,7 +93,7 @@ export default function DashboardWithdrawals() {
 
       if (withdrawalsError) throw withdrawalsError;
 
-      setAvailableBalance(Number(profileData?.balance || 0) * 100); // Convert to cents
+      setAvailableBalance(Math.max(0, calculatedBalance) * 100); // Convert to cents, ensure non-negative
       setWithdrawals((withdrawalsData || []).map(w => ({
         ...w,
         status: w.status as 'pending' | 'approved' | 'rejected'

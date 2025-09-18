@@ -51,6 +51,9 @@ export function EnterpriseReports() {
             products(name)
           `)
           .eq('user_id', user?.id)
+          .eq('status', 'completed')
+          .not('product_id', 'is', null) // Apenas vendas reais
+          .gte('amount', 0) // Apenas valores positivos
           .gte('created_at', fourWeeksAgo.toISOString())
           .order('created_at', { ascending: false }),
         

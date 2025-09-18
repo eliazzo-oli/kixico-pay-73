@@ -202,26 +202,32 @@ export default function AdminUserDetail() {
     try {
       const { data: transactionData, error } = await supabase
         .from('transactions')
-        .select('amount, status, payment_method')
-        .eq('user_id', userId);
+        .select('amount, status, payment_method, product_id')
+        .eq('user_id', userId)
+        .eq('status', 'completed');
 
       if (error) throw error;
 
-      // Calculate balance: credits (completed sales) - debits (withdrawals, fees)
+      // Calculate balance using the correct formula:
+      // Saldo = (Soma de todas as Vendas + Ajustes de Crédito) - (Saques Aprovados + Ajustes de Débito)
       let balance = 0;
+
       transactionData?.forEach(transaction => {
-        if (transaction.status === 'completed') {
-          if (transaction.payment_method === 'saque' || transaction.payment_method === 'taxa' || transaction.payment_method === 'debito') {
-            // These are debits (negative amounts)
-            balance += Number(transaction.amount);
-          } else {
-            // These are credits (sales)
-            balance += Number(transaction.amount);
-          }
+        // Add sales (transactions with product_id and positive amount)
+        if (transaction.product_id && transaction.amount > 0) {
+          balance += Number(transaction.amount);
+        }
+        // Add manual credit adjustments
+        else if (transaction.payment_method === 'credito') {
+          balance += Number(transaction.amount);
+        }
+        // Subtract withdrawals and manual debit adjustments
+        else if (transaction.payment_method === 'saque' || transaction.payment_method === 'debito') {
+          balance -= Math.abs(Number(transaction.amount));
         }
       });
 
-      setCalculatedBalance(balance);
+      setCalculatedBalance(Math.max(0, balance)); // Ensure non-negative balance
     } catch (error) {
       console.error('Error calculating balance:', error);
       setCalculatedBalance(0);

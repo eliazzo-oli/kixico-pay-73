@@ -52,13 +52,13 @@ interface Product {
 
 interface Transaction {
   id: string;
-  product_id: string;
+  product_id: string | null;
   amount: number;
   status: string;
-  payment_method: string;
+  payment_method: string | null;
   customer_email: string;
   created_at: string;
-  products: { name: string };
+  products: { name: string } | null;
 }
 
 interface DashboardStats {
@@ -146,11 +146,15 @@ export default function Dashboard() {
       setProducts(productsData || []);
       setTransactions(transactionsData || []);
 
-      // Calculate stats
-      const completedTransactions = transactionsData?.filter(t => t.status === 'completed') || [];
-      const totalSales = completedTransactions.length;
-      const netRevenue = completedTransactions.reduce((sum, t) => sum + t.amount, 0); // Keep original amount
-      const productsSold = completedTransactions.length; // Simplified calculation
+      // Calculate stats - only count actual sales (with product_id and completed status)
+      const actualSales = transactionsData?.filter(t => 
+        t.status === 'completed' && 
+        t.product_id !== null && 
+        t.amount > 0
+      ) || [];
+      const totalSales = actualSales.length;
+      const netRevenue = actualSales.reduce((sum, t) => sum + t.amount, 0);
+      const productsSold = actualSales.length;
       const totalTransactions = transactionsData?.length || 0;
 
       setStats({
@@ -509,9 +513,18 @@ export default function Dashboard() {
                                 <TableCell>
                                   {new Date(transaction.created_at).toLocaleDateString('pt-AO')}
                                 </TableCell>
-                                <TableCell className="font-medium">
-                                  {transaction.products?.name || 'Produto não encontrado'}
-                                </TableCell>
+                                 <TableCell className="font-medium">
+                                   {transaction.product_id 
+                                     ? (transaction.products?.name || 'Produto não encontrado')
+                                     : transaction.payment_method === 'saque'
+                                       ? 'Saque Aprovado'
+                                       : transaction.payment_method === 'credito'
+                                         ? 'Ajuste Manual (Crédito)'
+                                         : transaction.payment_method === 'debito'
+                                           ? 'Ajuste Manual (Débito)'
+                                           : 'Transação do Sistema'
+                                   }
+                                 </TableCell>
                                 <TableCell className="font-semibold">
                                   {transaction.amount.toLocaleString('pt-AO', {
                                     minimumFractionDigits: 2,
@@ -703,9 +716,18 @@ export default function Dashboard() {
                                   <TableCell>
                                     {new Date(transaction.created_at).toLocaleDateString('pt-AO')}
                                   </TableCell>
-                                  <TableCell className="font-medium">
-                                    {transaction.products?.name || 'Produto não encontrado'}
-                                  </TableCell>
+                                   <TableCell className="font-medium">
+                                     {transaction.product_id 
+                                       ? (transaction.products?.name || 'Produto não encontrado')
+                                       : transaction.payment_method === 'saque'
+                                         ? 'Saque Aprovado'
+                                         : transaction.payment_method === 'credito'
+                                           ? 'Ajuste Manual (Crédito)'
+                                           : transaction.payment_method === 'debito'
+                                             ? 'Ajuste Manual (Débito)'
+                                             : 'Transação do Sistema'
+                                     }
+                                   </TableCell>
                                   <TableCell className="font-semibold">
                                     {transaction.amount.toLocaleString('pt-AO', {
                                       minimumFractionDigits: 2,

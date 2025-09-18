@@ -53,7 +53,7 @@ export function EnterpriseAnalytics() {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysBack);
 
-      // Buscar transações do período
+      // Buscar apenas vendas reais (transações completadas com product_id)
       const { data: transactions, error } = await supabase
         .from('transactions')
         .select(`
@@ -62,6 +62,8 @@ export function EnterpriseAnalytics() {
         `)
         .eq('user_id', user?.id)
         .eq('status', 'completed')
+        .not('product_id', 'is', null) // Apenas vendas reais
+        .gte('amount', 0) // Apenas valores positivos
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: true });
 

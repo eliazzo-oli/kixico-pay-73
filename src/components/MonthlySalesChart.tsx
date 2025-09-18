@@ -50,9 +50,11 @@ export function MonthlySalesChart() {
 
       const { data: transactions, error } = await supabase
         .from('transactions')
-        .select('amount, status, created_at')
+        .select('amount, status, created_at, product_id')
         .eq('user_id', user?.id)
         .eq('status', 'completed')
+        .not('product_id', 'is', null) // Apenas vendas reais
+        .gte('amount', 0) // Apenas valores positivos
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString())
         .order('created_at', { ascending: true });

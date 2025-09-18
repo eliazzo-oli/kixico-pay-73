@@ -20,14 +20,16 @@ export default function Wallet() {
       if (!user?.id) return;
       
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('balance')
+        // Calculate balance based on transactions following the correct formula:
+        // Saldo = (Soma de todas as Vendas + Ajustes de Crédito) - (Saques Aprovados + Ajustes de Débito)
+        const { data: transactions, error } = await supabase
+          .from('transactions')
+          .select('amount, payment_method, product_id')
           .eq('user_id', user.id)
-          .single();
+          .eq('status', 'completed');
 
         if (error) {
-          console.error('Erro ao buscar saldo:', error);
+          console.error('Erro ao buscar transações:', error);
           toast({
             title: "Erro ao carregar saldo",
             description: "Não foi possível carregar seu saldo atual.",
@@ -36,8 +38,24 @@ export default function Wallet() {
           return;
         }
 
-        // Se o saldo for null ou undefined, usar 0
-        setBalance(data?.balance || 0);
+        let calculatedBalance = 0;
+        
+        transactions?.forEach(transaction => {
+          // Add sales (transactions with product_id and positive amount)
+          if (transaction.product_id && transaction.amount > 0) {
+            calculatedBalance += Number(transaction.amount);
+          }
+          // Add manual credit adjustments
+          else if (transaction.payment_method === 'credito') {
+            calculatedBalance += Number(transaction.amount);
+          }
+          // Subtract withdrawals and manual debit adjustments
+          else if (transaction.payment_method === 'saque' || transaction.payment_method === 'debito') {
+            calculatedBalance -= Math.abs(Number(transaction.amount));
+          }
+        });
+
+        setBalance(Math.max(0, calculatedBalance)); // Ensure non-negative balance
       } catch (error) {
         console.error('Erro ao buscar saldo:', error);
         setBalance(0);
