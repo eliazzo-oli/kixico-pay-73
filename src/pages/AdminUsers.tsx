@@ -67,6 +67,39 @@ export default function AdminUsers() {
   const { onlineCount } = useRealtimeOnlineCount();
   const navigate = useNavigate();
 
+  // Function to calculate real-time balance for a user
+  const calculateUserBalance = async (userId: string): Promise<number> => {
+    const { data: transactions, error } = await supabase
+      .from('transactions')
+      .select('amount, payment_method, product_id')
+      .eq('user_id', userId)
+      .eq('status', 'completed');
+
+    if (error) {
+      console.error('Erro ao buscar transações para usuário:', userId, error);
+      return 0;
+    }
+
+    let calculatedBalance = 0;
+    
+    transactions?.forEach(transaction => {
+      // Add sales (transactions with product_id and positive amount)
+      if (transaction.product_id && transaction.amount > 0) {
+        calculatedBalance += Number(transaction.amount);
+      }
+      // Add manual credit adjustments
+      else if (transaction.payment_method === 'credito') {
+        calculatedBalance += Number(transaction.amount);
+      }
+      // Subtract withdrawals and manual debit adjustments
+      else if (transaction.payment_method === 'saque' || transaction.payment_method === 'debito') {
+        calculatedBalance -= Math.abs(Number(transaction.amount));
+      }
+    });
+
+    return Math.max(0, calculatedBalance); // Ensure non-negative balance
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -99,67 +132,73 @@ export default function AdminUsers() {
           .select('*')
           .eq('is_active', true);
 
-        const userData = profiles?.map(profile => {
-          const userSubscription = subscriptions?.find(sub => sub.user_id === profile.user_id);
-          const userRole = roles?.find(role => role.user_id === profile.user_id);
-          
-          // Determinar o plano do usuário: 
-          // 1. Se tem assinatura ativa, usar o plano da assinatura
-          // 2. Se não tem assinatura ativa, usar o plano_assinatura do perfil  
-          // 3. Se não tem nenhum, mostrar o plano básico padrão ou "Sem plano"
-          let planName = 'Sem plano';
-          let subscriptionStatus: 'active' | 'expired' | 'trial_expired' | 'none' = 'none';
-          let subscriptionExpiry: string | undefined;
-          
-          // Verificar status do trial
-          const now = new Date();
-          let isTrialExpired = false;
-          if (profile.trial_end_date) {
-            const trialEndDate = new Date(profile.trial_end_date);
-            isTrialExpired = now > trialEndDate;
-          }
-          
-          if (userSubscription?.plans) {
-            // Usuário tem assinatura ativa - verificar se está expirada
-            planName = (userSubscription.plans as any).name;
-            if (userSubscription.expires_at) {
-              const expiryDate = new Date(userSubscription.expires_at);
-              subscriptionExpiry = userSubscription.expires_at;
-              subscriptionStatus = now <= expiryDate ? 'active' : 'expired';
-            } else {
-              subscriptionStatus = 'active';
+        // Calculate real-time balances for all users
+        const userDataWithBalances = await Promise.all(
+          profiles?.map(async (profile) => {
+            const realTimeBalance = await calculateUserBalance(profile.user_id);
+            const userSubscription = subscriptions?.find(sub => sub.user_id === profile.user_id);
+            const userRole = roles?.find(role => role.user_id === profile.user_id);
+            
+            // Determinar o plano do usuário: 
+            // 1. Se tem assinatura ativa, usar o plano da assinatura
+            // 2. Se não tem assinatura ativa, usar o plano_assinatura do perfil  
+            // 3. Se não tem nenhum, mostrar o plano básico padrão ou "Sem plano"
+            let planName = 'Sem plano';
+            let subscriptionStatus: 'active' | 'expired' | 'trial_expired' | 'none' = 'none';
+            let subscriptionExpiry: string | undefined;
+            
+            // Verificar status do trial
+            const now = new Date();
+            let isTrialExpired = false;
+            if (profile.trial_end_date) {
+              const trialEndDate = new Date(profile.trial_end_date);
+              isTrialExpired = now > trialEndDate;
             }
-          } else if (profile.plano_assinatura && profile.plano_assinatura !== 'basico') {
-            // Usuário tem plano definido no perfil (diferente do básico padrão)
-            const planDisplayNames: Record<string, string> = {
-              'basico': 'Básico',
-              'profissional': 'Profissional', 
-              'empresarial': 'Empresarial'
+            
+            if (userSubscription?.plans) {
+              // Usuário tem assinatura ativa - verificar se está expirada
+              planName = (userSubscription.plans as any).name;
+              if (userSubscription.expires_at) {
+                const expiryDate = new Date(userSubscription.expires_at);
+                subscriptionExpiry = userSubscription.expires_at;
+                subscriptionStatus = now <= expiryDate ? 'active' : 'expired';
+              } else {
+                subscriptionStatus = 'active';
+              }
+            } else if (profile.plano_assinatura && profile.plano_assinatura !== 'basico') {
+              // Usuário tem plano definido no perfil (diferente do básico padrão)
+              const planDisplayNames: Record<string, string> = {
+                'basico': 'Básico',
+                'profissional': 'Profissional', 
+                'empresarial': 'Empresarial'
+              };
+              planName = planDisplayNames[profile.plano_assinatura] || profile.plano_assinatura;
+              subscriptionStatus = isTrialExpired ? 'trial_expired' : 'active';
+            } else if (profile.plano_assinatura === 'basico') {
+              // Usuário tem plano básico
+              planName = 'Básico';
+              subscriptionStatus = isTrialExpired ? 'trial_expired' : 'active';
+            } else {
+              // Sem plano
+              subscriptionStatus = isTrialExpired ? 'trial_expired' : 'none';
+            }
+            
+            return {
+              id: profile.user_id,
+              name: profile.name,
+              email: profile.email,
+              balance: realTimeBalance, // Use calculated real-time balance
+              created_at: profile.created_at,
+              plan_name: planName,
+              role: userRole?.role || 'user',
+              status: profile.status || 'active',
+              subscription_status: subscriptionStatus,
+              subscription_expiry: subscriptionExpiry
             };
-            planName = planDisplayNames[profile.plano_assinatura] || profile.plano_assinatura;
-            subscriptionStatus = isTrialExpired ? 'trial_expired' : 'active';
-          } else if (profile.plano_assinatura === 'basico') {
-            // Usuário tem plano básico
-            planName = 'Básico';
-            subscriptionStatus = isTrialExpired ? 'trial_expired' : 'active';
-          } else {
-            // Sem plano
-            subscriptionStatus = isTrialExpired ? 'trial_expired' : 'none';
-          }
-          
-          return {
-            id: profile.user_id,
-            name: profile.name,
-            email: profile.email,
-            balance: Number(profile.balance) || 0,
-            created_at: profile.created_at,
-            plan_name: planName,
-            role: userRole?.role || 'user',
-            status: profile.status || 'active',
-            subscription_status: subscriptionStatus,
-            subscription_expiry: subscriptionExpiry
-          };
-        }) || [];
+          }) || []
+        );
+
+        const userData = userDataWithBalances;
 
         setUsers(userData);
         setPlans(plansData || []);
@@ -197,7 +236,7 @@ export default function AdminUsers() {
           id: newProfile.user_id,
           name: newProfile.name,
           email: newProfile.email,
-          balance: Number(newProfile.balance) || 0,
+          balance: await calculateUserBalance(newProfile.user_id), // Calculate real-time balance
           created_at: newProfile.created_at,
           plan_name: planName,
           role: 'user',
@@ -211,14 +250,15 @@ export default function AdminUsers() {
           description: `E-mail: ${newProfile.email}`
         });
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, async (payload) => {
         console.log('User updated:', payload);
         const updatedProfile = payload.new as any;
+        const recalculatedBalance = await calculateUserBalance(updatedProfile.user_id);
         
         setUsers(prevUsers => 
           prevUsers.map(user => 
             user.id === updatedProfile.user_id
-              ? { ...user, name: updatedProfile.name, email: updatedProfile.email, balance: Number(updatedProfile.balance) || 0, status: updatedProfile.status || 'active' }
+              ? { ...user, name: updatedProfile.name, email: updatedProfile.email, balance: recalculatedBalance, status: updatedProfile.status || 'active' }
               : user
           )
         );
@@ -235,40 +275,45 @@ export default function AdminUsers() {
           const { data: subscriptions } = await supabase.from('user_subscriptions').select(`user_id, status, plans (name)`).eq('status', 'active');
           const { data: roles } = await supabase.from('user_roles').select('user_id, role');
 
-          const userData = profiles?.map(profile => {
-            const userSubscription = subscriptions?.find(sub => sub.user_id === profile.user_id);
-            const userRole = roles?.find(role => role.user_id === profile.user_id);
-            
-            // Determinar o plano do usuário corretamente
-            let planName = 'Sem plano';
-            
-            if (userSubscription?.plans) {
-              // Usuário tem assinatura ativa
-              planName = (userSubscription.plans as any).name;
-            } else if (profile.plano_assinatura && profile.plano_assinatura !== 'basico') {
-              // Usuário tem plano definido no perfil (diferente do básico padrão)
-              const planDisplayNames: Record<string, string> = {
-                'basico': 'Básico',
-                'profissional': 'Profissional', 
-                'empresarial': 'Empresarial'
+          const userDataWithBalances = await Promise.all(
+            profiles?.map(async (profile) => {
+              const realTimeBalance = await calculateUserBalance(profile.user_id);
+              const userSubscription = subscriptions?.find(sub => sub.user_id === profile.user_id);
+              const userRole = roles?.find(role => role.user_id === profile.user_id);
+              
+              // Determinar o plano do usuário corretamente
+              let planName = 'Sem plano';
+              
+              if (userSubscription?.plans) {
+                // Usuário tem assinatura ativa
+                planName = (userSubscription.plans as any).name;
+              } else if (profile.plano_assinatura && profile.plano_assinatura !== 'basico') {
+                // Usuário tem plano definido no perfil (diferente do básico padrão)
+                const planDisplayNames: Record<string, string> = {
+                  'basico': 'Básico',
+                  'profissional': 'Profissional', 
+                  'empresarial': 'Empresarial'
+                };
+                planName = planDisplayNames[profile.plano_assinatura] || profile.plano_assinatura;
+              } else if (profile.plano_assinatura === 'basico') {
+                // Usuário tem plano básico
+                planName = 'Básico';
+              }
+              
+              return {
+                id: profile.user_id,
+                name: profile.name,
+                email: profile.email,
+                balance: realTimeBalance, // Use calculated real-time balance
+                created_at: profile.created_at,
+                plan_name: planName,
+                role: userRole?.role || 'user',
+                status: profile.status || 'active'
               };
-              planName = planDisplayNames[profile.plano_assinatura] || profile.plano_assinatura;
-            } else if (profile.plano_assinatura === 'basico') {
-              // Usuário tem plano básico
-              planName = 'Básico';
-            }
-            
-            return {
-              id: profile.user_id,
-              name: profile.name,
-              email: profile.email,
-              balance: Number(profile.balance) || 0,
-              created_at: profile.created_at,
-              plan_name: planName,
-              role: userRole?.role || 'user',
-              status: profile.status || 'active'
-            };
-          }) || [];
+            }) || []
+          );
+
+          const userData = userDataWithBalances;
 
           setUsers(userData);
           
@@ -279,6 +324,27 @@ export default function AdminUsers() {
           }
         } catch (error) {
           console.error('Error refreshing users after subscription change:', error);
+        }
+      })
+      // Add listener for transaction changes to recalculate balances
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, async (payload) => {
+        console.log('Transaction changed:', payload);
+        try {
+          // Recalculate balance for the affected user
+          const transaction = payload.new as any;
+          if (transaction?.user_id) {
+            const updatedBalance = await calculateUserBalance(transaction.user_id);
+            
+            setUsers(prevUsers => 
+              prevUsers.map(user => 
+                user.id === transaction.user_id 
+                  ? { ...user, balance: updatedBalance }
+                  : user
+              )
+            );
+          }
+        } catch (error) {
+          console.error('Error updating user balance after transaction change:', error);
         }
       })
       .subscribe();
