@@ -432,8 +432,8 @@ export default function AdminUserDetail() {
     );
   }
 
-  const completedTransactions = transactions.filter(t => t.status === 'completed');
-  const totalRevenue = completedTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const salesTransactions = transactions.filter(t => t.status === 'completed' && t.product_id);
+  const totalRevenue = salesTransactions.reduce((sum, t) => sum + t.amount, 0);
   const totalWithdrawn = withdrawals
     .filter(w => w.status === 'completed')
     .reduce((sum, w) => sum + Number(w.amount), 0);
@@ -537,7 +537,7 @@ export default function AdminUserDetail() {
                     <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-foreground">{completedTransactions.length}</div>
+                    <div className="text-2xl font-bold text-foreground">{salesTransactions.length}</div>
                     <p className="text-xs text-muted-foreground mt-1">
                       Receita: {totalRevenue.toLocaleString('pt-AO')} AOA
                     </p>
