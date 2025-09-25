@@ -42,14 +42,18 @@ export default function AdminDashboard() {
           .from('profiles')
           .select('*', { count: 'exact', head: true });
 
-        // Fetch total transactions and revenue
+        // Fetch total transactions and revenue (only actual sales)
         const { data: transactions } = await supabase
           .from('transactions')
-          .select('amount, status');
+          .select('amount, status, product_id, payment_method');
 
-        const totalTransactions = transactions?.length || 0;
-        const totalRevenue = transactions
-          ?.filter(t => t.status === 'completed')
+        // Count only real sales (transactions with product_id)
+        const salesTransactions = transactions?.filter(t => 
+          t.status === 'completed' && t.product_id
+        ) || [];
+        
+        const totalTransactions = salesTransactions.length;
+        const totalRevenue = salesTransactions
           ?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
 
         // Calculate platform revenue (assuming 2.5% fee)
@@ -174,7 +178,7 @@ export default function AdminDashboard() {
                 <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Total de Transações
+                      Total de Vendas (Quantidade)
                     </CardTitle>
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
@@ -184,7 +188,7 @@ export default function AdminDashboard() {
                     </div>
                     <p className="text-xs text-success flex items-center mt-1">
                       <TrendingUp className="h-3 w-3 mr-1" />
-                      Transações processadas
+                      Vendas efetivas processadas
                     </p>
                   </CardContent>
                 </Card>
