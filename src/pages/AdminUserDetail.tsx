@@ -56,6 +56,7 @@ interface Transaction {
   customer_email: string;
   payment_method: string;
   product_name?: string;
+  product_id?: string;
 }
 
 interface Product {
@@ -165,7 +166,8 @@ export default function AdminUserDetail() {
         customer_name: t.customer_name || 'N/A',
         customer_email: t.customer_email,
         payment_method: t.payment_method || 'N/A',
-        product_name: t.products?.name
+        product_name: t.products?.name,
+        product_id: t.product_id
       })) || [];
 
       setTransactions(formattedTransactions);
@@ -781,7 +783,18 @@ export default function AdminUserDetail() {
                                       <p className="text-sm text-muted-foreground">{transaction.customer_email}</p>
                                     </div>
                                   </TableCell>
-                                  <TableCell>{transaction.product_name || 'N/A'}</TableCell>
+                                  <TableCell className="font-medium">
+                                    {transaction.product_id 
+                                      ? (transaction.product_name || 'Produto não encontrado')
+                                      : transaction.payment_method === 'saque'
+                                        ? 'Saque Aprovado'
+                                        : transaction.payment_method === 'credito'
+                                          ? 'Ajuste Manual (Crédito)'
+                                          : transaction.payment_method === 'debito'
+                                            ? 'Ajuste Manual (Débito)'
+                                            : 'Transação do Sistema'
+                                    }
+                                  </TableCell>
                                   <TableCell className="font-medium">
                                     {transaction.amount.toLocaleString('pt-AO')} AOA
                                   </TableCell>
