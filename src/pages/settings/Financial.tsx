@@ -7,13 +7,18 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileText, Image, Home } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 export default function Financial() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [biFile, setBiFile] = useState<File | null>(null);
   const [nifFile, setNifFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -21,6 +26,32 @@ export default function Financial() {
       iban: ''
     }
   });
+
+  // Carregar dados existentes
+  useEffect(() => {
+    if (user) {
+      loadFinancialData();
+    }
+  }, [user]);
+
+  const loadFinancialData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('account_holder_name, account_number')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        form.setValue('accountHolderName', data.account_holder_name || '');
+        form.setValue('iban', data.account_number || '');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados financeiros:', error);
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'bi' | 'nif') => {
     const file = event.target.files?.[0];
@@ -33,10 +64,61 @@ export default function Financial() {
     }
   };
 
-  const onSubmit = (data: any) => {
-    console.log('Dados financeiros:', data);
-    console.log('Arquivos BI:', biFile);
-    console.log('Arquivos NIF:', nifFile);
+  const onSubmit = async (data: any) => {
+    if (!user) {
+      toast.error('Usuário não autenticado');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Upload dos arquivos se existirem
+      let biUrl = null;
+      let nifUrl = null;
+
+      if (biFile) {
+        const biPath = `documents/${user.id}/bi/${biFile.name}`;
+        const { error: biError } = await supabase.storage
+          .from('avatars')
+          .upload(biPath, biFile, { upsert: true });
+        
+        if (biError) throw new Error(`Erro no upload do BI: ${biError.message}`);
+        biUrl = biPath;
+      }
+
+      if (nifFile) {
+        const nifPath = `documents/${user.id}/nif/${nifFile.name}`;
+        const { error: nifError } = await supabase.storage
+          .from('avatars')
+          .upload(nifPath, nifFile, { upsert: true });
+        
+        if (nifError) throw new Error(`Erro no upload do NIF: ${nifError.message}`);
+        nifUrl = nifPath;
+      }
+
+      // Atualizar dados financeiros na base de dados
+      const updateData: any = {
+        account_holder_name: data.accountHolderName,
+        account_number: data.iban,
+      };
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        throw new Error(`Erro ao salvar dados: ${updateError.message}`);
+      }
+
+      toast.success('Dados financeiros salvos com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao salvar dados financeiros:', error);
+      toast.error(error.message || 'Erro ao salvar dados financeiros');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -168,8 +250,8 @@ export default function Financial() {
             </CardContent>
           </Card>
 
-          <Button type="submit" className="w-full">
-            Salvar Dados Financeiros
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar Dados Financeiros'}
           </Button>
         </form>
       </Form>
