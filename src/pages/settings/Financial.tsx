@@ -23,6 +23,7 @@ export default function Financial() {
   const form = useForm({
     defaultValues: {
       accountHolderName: '',
+      bankName: '',
       iban: ''
     }
   });
@@ -38,7 +39,7 @@ export default function Financial() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('account_holder_name, account_number')
+        .select('account_holder_name, bank_name, account_number')
         .eq('user_id', user?.id)
         .maybeSingle();
 
@@ -49,6 +50,7 @@ export default function Financial() {
 
       if (data) {
         form.setValue('accountHolderName', data.account_holder_name || '');
+        form.setValue('bankName', data.bank_name || '');
         form.setValue('iban', data.account_number || '');
       }
     } catch (error) {
@@ -74,8 +76,8 @@ export default function Financial() {
     }
 
     // Validação básica dos campos obrigatórios
-    if (!data.accountHolderName?.trim() || !data.iban?.trim()) {
-      toast.error('Nome do titular e IBAN são campos obrigatórios');
+    if (!data.accountHolderName?.trim() || !data.bankName?.trim() || !data.iban?.trim()) {
+      toast.error('Nome do titular, nome do banco e IBAN são campos obrigatórios');
       return;
     }
 
@@ -117,6 +119,7 @@ export default function Financial() {
       console.log('Atualizando dados na tabela profiles...');
       const updateData = {
         account_holder_name: data.accountHolderName.trim(),
+        bank_name: data.bankName.trim(),
         account_number: data.iban.trim(),
       };
 
@@ -183,6 +186,20 @@ export default function Financial() {
                     <FormLabel>Nome do Titular da Conta</FormLabel>
                     <FormControl>
                       <Input placeholder="Digite o nome completo do titular" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="bankName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do Banco</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Digite o nome do banco" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -49,14 +49,14 @@ interface EditableUserData {
 
 interface Transaction {
   id: string;
+  customer_name: string;
+  customer_email: string;
   amount: number;
   status: string;
   created_at: string;
-  customer_name: string;
-  customer_email: string;
   payment_method: string;
-  product_name?: string;
-  product_id?: string;
+  product_id: string | null;
+  product_name: string;
 }
 
 interface Product {
@@ -102,35 +102,36 @@ export default function AdminUserDetail() {
   const [showDebitModal, setShowDebitModal] = useState(false);
   const [adjustmentForm, setAdjustmentForm] = useState({ amount: '', justification: '' });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [suspending, setSuspending] = useState(false);
-  const { user, signOut } = useAuth();
-
+  const [biImageUrl, setBiImageUrl] = useState<string>('');
+  const [nifImageUrl, setNifImageUrl] = useState<string>('');
+  
   useEffect(() => {
     if (id) {
-      fetchUserDetail();
+      fetchUserDetails();
+      fetchTransactions();
+      fetchProducts();
+      fetchWithdrawals();
       fetchPlans();
     }
   }, [id]);
 
-  const fetchUserDetail = async () => {
-    try {
-      setLoading(true);
+  const fetchUserDetails = async () => {
+    if (!id) return;
 
-      // Fetch user profile
-      const { data: profile, error: profileError } = await supabase
+    try {
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', id)
         .single();
 
-      if (profileError) throw profileError;
+      if (error) throw error;
 
       setUserDetail(profile);
+      setCalculatedBalance(profile.balance || 0);
       setEditableData({
         name: profile.name || '',
         email: profile.email || '',
@@ -143,84 +144,90 @@ export default function AdminUserDetail() {
         digital_wallet_identifier: profile.digital_wallet_identifier || '',
       });
 
-      // Calculate balance from transactions
-      await calculateUserBalance(id);
+      // Load documents
+      await loadDocuments();
+    } catch (error) {
+      console.error('Erro ao buscar detalhes do usuário:', error);
+      toast.error('Erro ao carregar dados do usuário');
+    }
+  };
 
-      // Fetch user transactions
-      const { data: transactionData, error: transactionError } = await supabase
+  const loadDocuments = async () => {
+    if (!id) return;
+
+    try {
+      // Load BI document
+      const { data: biFiles } = await supabase.storage
+        .from('avatars')
+        .list(`documents/${id}/bi/`);
+
+      if (biFiles && biFiles.length > 0) {
+        const { data: biUrl } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(`documents/${id}/bi/${biFiles[0].name}`);
+        setBiImageUrl(biUrl.publicUrl);
+      }
+
+      // Load NIF document
+      const { data: nifFiles } = await supabase.storage
+        .from('avatars')
+        .list(`documents/${id}/nif/`);
+
+      if (nifFiles && nifFiles.length > 0) {
+        const { data: nifUrl } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(`documents/${id}/nif/${nifFiles[0].name}`);
+        setNifImageUrl(nifUrl.publicUrl);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar documentos:', error);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    if (!id) return;
+
+    try {
+      const { data, error } = await supabase
         .from('transactions')
         .select(`
-          *,
-          products(name)
+          id,
+          customer_name,
+          customer_email,
+          amount,
+          status,
+          created_at,
+          payment_method,
+          product_id,
+          products (name)
         `)
         .eq('user_id', id)
         .order('created_at', { ascending: false });
 
-      if (transactionError) throw transactionError;
-
-      const formattedTransactions = transactionData?.map(t => ({
-        id: t.id,
-        amount: Number(t.amount),
-        status: t.status,
-        created_at: t.created_at,
-        customer_name: t.customer_name || 'N/A',
-        customer_email: t.customer_email,
-        payment_method: t.payment_method || 'N/A',
-        product_name: t.products?.name,
-        product_id: t.product_id
-      })) || [];
-
-      setTransactions(formattedTransactions);
-
-      // Fetch user products
-      const { data: productData, error: productError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('user_id', id)
-        .order('created_at', { ascending: false });
-
-      if (productError) throw productError;
-      setProducts(productData || []);
-
-      // Fetch user withdrawals
-      const { data: withdrawalData, error: withdrawalError } = await supabase
-        .from('withdrawals')
-        .select('*')
-        .eq('user_id', id)
-        .order('created_at', { ascending: false });
-
-      if (withdrawalError) throw withdrawalError;
-      setWithdrawals(withdrawalData || []);
-
-    } catch (error) {
-      console.error('Error fetching user detail:', error);
-      toast.error('Erro ao carregar dados do usuário');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateUserBalance = async (userId: string) => {
-    try {
-      const { data: transactionData, error } = await supabase
-        .from('transactions')
-        .select('amount, status, payment_method, product_id')
-        .eq('user_id', userId)
-        .eq('status', 'completed');
-
       if (error) throw error;
+
+      const mappedTransactions = data.map(transaction => ({
+        id: transaction.id,
+        customer_name: transaction.customer_name,
+        customer_email: transaction.customer_email,
+        amount: transaction.amount,
+        status: transaction.status,
+        created_at: transaction.created_at,
+        payment_method: transaction.payment_method,
+        product_id: transaction.product_id,
+        product_name: transaction.products?.name || 'Produto não encontrado'
+      }));
+
+      setTransactions(mappedTransactions);
 
       // Calculate balance using the correct formula:
       // Saldo = (Soma de todas as Vendas + Ajustes de Crédito) - (Saques Aprovados + Ajustes de Débito)
       let balance = 0;
 
-      transactionData?.forEach(transaction => {
-        // Add sales (transactions with product_id and positive amount)
-        if (transaction.product_id && transaction.amount > 0) {
-          balance += Number(transaction.amount);
-        }
-        // Add manual credit adjustments
-        else if (transaction.payment_method === 'credito') {
+      data.forEach(transaction => {
+        // Add completed sales and manual credit adjustments
+        if ((transaction.status === 'completed' && transaction.product_id) || 
+            transaction.payment_method === 'credito') {
           balance += Number(transaction.amount);
         }
         // Subtract withdrawals and manual debit adjustments
@@ -229,37 +236,75 @@ export default function AdminUserDetail() {
         }
       });
 
-      setCalculatedBalance(Math.max(0, balance)); // Ensure non-negative balance
+      setCalculatedBalance(balance);
+
+      // Update the balance in the database to match calculated value
+      await supabase
+        .from('profiles')
+        .update({ balance: balance })
+        .eq('user_id', id);
+
     } catch (error) {
-      console.error('Error calculating balance:', error);
-      setCalculatedBalance(0);
+      console.error('Erro ao buscar transações:', error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    if (!id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('user_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar produtos:', error);
+    }
+  };
+
+  const fetchWithdrawals = async () => {
+    if (!id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('withdrawals')
+        .select('*')
+        .eq('user_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setWithdrawals(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar saques:', error);
     }
   };
 
   const fetchPlans = async () => {
     try {
-      const { data: plansData, error } = await supabase
+      const { data, error } = await supabase
         .from('plans')
-        .select('id, name, price')
+        .select('*')
         .eq('is_active', true);
 
       if (error) throw error;
-      setPlans(plansData || []);
+      setPlans(data || []);
     } catch (error) {
-      console.error('Error fetching plans:', error);
+      console.error('Erro ao buscar planos:', error);
     }
   };
 
-  const handleSaveChanges = async () => {
+  const handleInputChange = (field: string, value: string) => {
+    setEditableData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveChanges = async () => {
     if (!id) return;
 
-    setSaving(true);
     try {
-      // Check if plan changed to send notification
-      const planChanged = userDetail?.plano_assinatura !== editableData.plano_assinatura;
-      const oldPlan = userDetail?.plano_assinatura;
-      const newPlan = editableData.plano_assinatura;
-
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -278,42 +323,33 @@ export default function AdminUserDetail() {
 
       if (error) throw error;
 
-      // Send notification if plan changed
-      if (planChanged) {
-        const planNames = {
-          'basico': 'Básico',
-          'profissional': 'Profissional', 
-          'empresarial': 'Empresarial'
-        };
-
-        const newPlanName = planNames[newPlan as keyof typeof planNames] || newPlan;
-        
-        const { error: notificationError } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: id,
-            message: `Olá! O seu plano de assinatura foi alterado para ${newPlanName} pela nossa equipa de suporte.`,
-            sender: 'Suporte',
-            read: false
-          });
-
-        if (notificationError) {
-          console.error('Error creating notification:', notificationError);
-        }
-      }
-
-      toast.success('Dados do usuário atualizados com sucesso!');
-      fetchUserDetail(); // Refresh data
+      toast.success('Dados salvos com sucesso!');
+      fetchUserDetails();
     } catch (error) {
-      console.error('Error updating user:', error);
-      toast.error('Erro ao salvar alterações');
-    } finally {
-      setSaving(false);
+      console.error('Erro ao salvar dados:', error);
+      toast.error('Erro ao salvar dados');
     }
   };
 
-  const handleInputChange = (field: keyof EditableUserData, value: string) => {
-    setEditableData(prev => ({ ...prev, [field]: value }));
+  const toggleUserStatus = async () => {
+    if (!id || !userDetail) return;
+
+    const newStatus = userDetail.status === 'active' ? 'banned' : 'active';
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: newStatus })
+        .eq('user_id', id);
+
+      if (error) throw error;
+
+      toast.success(`Usuário ${newStatus === 'active' ? 'ativado' : 'banido'} com sucesso!`);
+      fetchUserDetails();
+    } catch (error) {
+      console.error('Erro ao alterar status:', error);
+      toast.error('Erro ao alterar status do usuário');
+    }
   };
 
   const handleAdjustment = async (type: 'credit' | 'debit') => {
@@ -323,8 +359,8 @@ export default function AdminUserDetail() {
     }
 
     const amount = parseFloat(adjustmentForm.amount);
-    if (amount <= 0) {
-      toast.error('O valor deve ser maior que zero');
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Valor deve ser um número positivo');
       return;
     }
 
@@ -335,10 +371,10 @@ export default function AdminUserDetail() {
       const { data, error } = await supabase.functions.invoke('admin-manual-adjustment', {
         body: {
           userId: id,
-          amount: amount,
-          type,
+          amount: transactionAmount,
           justification: adjustmentForm.justification,
-        },
+          paymentMethod: paymentMethod
+        }
       });
 
       if (error) throw error;
@@ -349,85 +385,44 @@ export default function AdminUserDetail() {
       setShowDebitModal(false);
       
       // Refresh data
-      await calculateUserBalance(id);
-      fetchUserDetail();
+      fetchTransactions();
+      fetchUserDetails();
     } catch (error) {
-      console.error('Error creating adjustment:', error);
+      console.error('Erro ao aplicar ajuste:', error);
       toast.error('Erro ao aplicar ajuste');
-    }
-  };
-
-  const handleSuspendUser = async () => {
-    if (!id || !userDetail) return;
-
-    setSuspending(true);
-    try {
-      const newStatus = (userDetail.status === 'suspended' || userDetail.status === 'suspenso') ? 'active' : 'suspended';
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          status: newStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', id);
-
-      if (error) throw error;
-
-      setUserDetail(prev => prev ? { ...prev, status: newStatus } : null);
-      
-      toast.success(
-        newStatus === 'suspended' 
-          ? 'Conta suspensa com sucesso!' 
-          : 'Conta reativada com sucesso!'
-      );
-    } catch (error) {
-      console.error('Error updating user status:', error);
-      toast.error('Erro ao alterar status da conta');
-    } finally {
-      setSuspending(false);
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-success/10 text-success border-success/20">Completo</Badge>;
+        return <Badge variant="default" className="bg-green-500">Completado</Badge>;
       case 'pending':
-        return <Badge variant="outline">Pendente</Badge>;
+        return <Badge variant="secondary">Pendente</Badge>;
       case 'failed':
-        return <Badge variant="destructive">Falhou</Badge>;
+        return <Badge variant="destructive">Falhado</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   const getPlanBadge = (plan: string) => {
     switch (plan) {
-      case 'profissional':
-        return <Badge className="bg-primary/10 text-primary border-primary/20">Profissional</Badge>;
+      case 'premium':
+        return <Badge variant="default" className="bg-gradient-to-r from-orange-400 to-orange-600">Premium</Badge>;
+      case 'basico':
+        return <Badge variant="secondary">Básico</Badge>;
       case 'empresarial':
-        return <Badge className="bg-accent/10 text-accent-foreground border-accent/20">Empresarial</Badge>;
+        return <Badge variant="default" className="bg-gradient-to-r from-blue-500 to-blue-700">Empresarial</Badge>;
       default:
-        return <Badge variant="outline">Básico</Badge>;
+        return <Badge variant="outline">{plan}</Badge>;
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-foreground">Carregando detalhes do usuário...</div>
-      </div>
-    );
-  }
-
   if (!userDetail) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <p className="text-foreground">Usuário não encontrado</p>
-          <Button onClick={() => navigate('/admin/users')}>Voltar</Button>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -440,100 +435,96 @@ export default function AdminUserDetail() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
         <AdminSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="border-b border-border bg-card/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-4">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger />
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate('/admin/users')}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Voltar
-                </Button>
-                <img 
-                  src={kixicoPayLogo} 
-                  alt="KixicoPay" 
-                  className="h-8 w-auto"
-                />
+        <div className="lg:pl-64">
+          <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background/95 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <SidebarTrigger className="lg:hidden" />
+            
+            <div className="flex items-center gap-4 flex-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/admin/dashboard')}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+              
+              <div className="h-6 w-px bg-border mx-2" />
+              
+              <div className="flex items-center gap-3">
+                <UserAvatar userId={userDetail.user_id} size="sm" />
                 <div>
-                  <h1 className="text-xl font-semibold text-foreground">Editar Usuário</h1>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground">{userDetail.name}</p>
-                    {userDetail.status === 'online' && (
-                      <Badge className="bg-success/10 text-success border-success/20 text-xs">ONLINE</Badge>
-                    )}
-                    {(userDetail.status === 'suspended' || userDetail.status === 'suspenso') && (
-                      <Badge variant="destructive" className="text-xs">
-                        SUSPENSA
-                      </Badge>
-                    )}
-                  </div>
+                  <h1 className="text-lg font-semibold text-foreground">{userDetail.name}</h1>
+                  <p className="text-sm text-muted-foreground">{userDetail.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <Button onClick={handleSaveChanges} disabled={saving}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {saving ? 'Salvando...' : 'Salvar Alterações'}
-                </Button>
-                <Button 
-                  onClick={handleSuspendUser} 
-                  disabled={suspending}
-                  variant={(userDetail?.status === 'suspended' || userDetail?.status === 'suspenso') ? 'default' : 'destructive'}
-                >
-                  {(userDetail?.status === 'suspended' || userDetail?.status === 'suspenso') ? (
-                    <>
-                      <UserCheck className="h-4 w-4 mr-2" />
-                      {suspending ? 'Reativando...' : 'Reativar Conta'}
-                    </>
-                  ) : (
-                    <>
-                      <Ban className="h-4 w-4 mr-2" />
-                      {suspending ? 'Suspendendo...' : 'Suspender Conta'}
-                    </>
-                  )}
-                </Button>
-                <NotificationCenter />
-                <UserAvatar 
-                  userId={user?.id || ''} 
-                  userEmail={user?.email || ''} 
-                  onSignOut={signOut} 
-                />
-              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <img src={kixicoPayLogo} alt="KixicoPay" className="h-8 w-auto" />
+              <NotificationCenter />
             </div>
           </header>
 
-          <main className="flex-1 p-6">
-            <div className="max-w-7xl mx-auto space-y-6">
-              {/* User Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <main className="py-8 px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl space-y-8">
+              {/* Header Actions */}
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  {getPlanBadge(userDetail.plano_assinatura)}
+                  <Badge 
+                    variant={userDetail.status === 'active' ? 'default' : 'destructive'}
+                    className={userDetail.status === 'active' ? 'bg-green-500' : ''}
+                  >
+                    {userDetail.status === 'active' ? 'Ativo' : 'Banido'}
+                  </Badge>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={saveChanges} size="sm">
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Alterações
+                  </Button>
+                  <Button 
+                    onClick={toggleUserStatus}
+                    variant={userDetail.status === 'active' ? 'destructive' : 'default'}
+                    size="sm"
+                  >
+                    {userDetail.status === 'active' ? (
+                      <>
+                        <Ban className="w-4 h-4 mr-2" />
+                        Banir Usuário
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Ativar Usuário
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-border/50 shadow-lg">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Saldo Atual
-                    </CardTitle>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Atual</CardTitle>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
-                   <CardContent>
-                     <div className="text-2xl font-bold text-foreground">
-                       {calculatedBalance.toLocaleString('pt-AO')} AOA
-                     </div>
-                     <p className="text-xs text-muted-foreground mt-1">
-                       Calculado automaticamente
-                     </p>
-                   </CardContent>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-foreground">{calculatedBalance.toLocaleString('pt-AO')} AOA</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Calculado automaticamente
+                    </p>
+                  </CardContent>
                 </Card>
 
                 <Card className="border-border/50 shadow-lg">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Total de Vendas
-                    </CardTitle>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Total de Vendas</CardTitle>
                     <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -546,207 +537,207 @@ export default function AdminUserDetail() {
 
                 <Card className="border-border/50 shadow-lg">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Produtos Ativos
-                    </CardTitle>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Produtos</CardTitle>
                     <Package className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-foreground">
-                      {products.filter(p => p.active).length}
-                    </div>
+                    <div className="text-2xl font-bold text-foreground">{products.length}</div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Total: {products.length}
+                      Total cadastrados
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="border-border/50 shadow-lg">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Total Sacado
-                    </CardTitle>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Sacado</CardTitle>
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-foreground">
-                      {totalWithdrawn.toLocaleString('pt-AO')} AOA
-                    </div>
+                    <div className="text-2xl font-bold text-foreground">{totalWithdrawn.toLocaleString('pt-AO')} AOA</div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {withdrawals.length} saques
+                      {withdrawals.filter(w => w.status === 'completed').length} saques
                     </p>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Editable User Information */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Informações Pessoais */}
-                <Card className="border-border/50 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-foreground">
-                      <User className="h-5 w-5" />
-                      Informações Pessoais
-                    </CardTitle>
-                    <CardDescription>
-                      Dados básicos do usuário
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nome Completo</Label>
-                      <Input
-                        id="name"
-                        value={editableData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
-                        placeholder="Nome completo do usuário"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">E-mail</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={editableData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="E-mail do usuário"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Telefone</Label>
-                      <Input
-                        id="phone"
-                        value={editableData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        placeholder="Telefone do usuário"
-                      />
-                    </div>
-                     <div className="space-y-2">
-                       <Label>Saldo Atual (Read-Only)</Label>
-                       <div className="px-3 py-2 bg-muted rounded-md text-sm font-mono">
-                         {calculatedBalance.toLocaleString('pt-AO')} AOA
-                       </div>
-                       <p className="text-xs text-muted-foreground">
-                         Calculado automaticamente a partir das transações
-                       </p>
-                     </div>
-                     <div className="flex gap-2">
-                       <Button
-                         type="button"
-                         variant="outline"
-                         size="sm"
-                         onClick={() => setShowCreditModal(true)}
-                         className="flex-1"
-                       >
-                         <DollarSign className="h-4 w-4 mr-2" />
-                         Adicionar Crédito
-                       </Button>
-                       <Button
-                         type="button"
-                         variant="outline"
-                         size="sm"
-                         onClick={() => setShowDebitModal(true)}
-                         className="flex-1"
-                       >
-                         <DollarSign className="h-4 w-4 mr-2" />
-                         Aplicar Débito
-                       </Button>
-                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="plan">Plano de Assinatura</Label>
-                      <Select
-                        value={editableData.plano_assinatura}
-                        onValueChange={(value) => handleInputChange('plano_assinatura', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o plano" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="basico">Básico</SelectItem>
-                          <SelectItem value="profissional">Profissional</SelectItem>
-                          <SelectItem value="empresarial">Empresarial</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* User Information Tabs */}
+              <Tabs defaultValue="personal" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="personal">Dados Pessoais</TabsTrigger>
+                  <TabsTrigger value="financial">Dados Financeiros</TabsTrigger>
+                  <TabsTrigger value="details">Detalhes</TabsTrigger>
+                </TabsList>
 
-                {/* Dados Financeiros */}
-                <Card className="border-border/50 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-foreground">
-                      <CreditCard className="h-5 w-5" />
-                      Dados Financeiros
-                    </CardTitle>
-                    <CardDescription>
-                      Informações bancárias e carteira digital
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="bank_name">Nome do Banco</Label>
-                      <Input
-                        id="bank_name"
-                        value={editableData.bank_name}
-                        onChange={(e) => handleInputChange('bank_name', e.target.value)}
-                        placeholder="Ex: Banco BAI"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="account_holder_name">Nome do Titular</Label>
-                      <Input
-                        id="account_holder_name"
-                        value={editableData.account_holder_name}
-                        onChange={(e) => handleInputChange('account_holder_name', e.target.value)}
-                        placeholder="Nome do titular da conta"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="account_number">Número da Conta</Label>
-                      <Input
-                        id="account_number"
-                        value={editableData.account_number}
-                        onChange={(e) => handleInputChange('account_number', e.target.value)}
-                        placeholder="Número da conta bancária"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="digital_wallet_type">Tipo de Carteira Digital</Label>
-                      <Select
-                        value={editableData.digital_wallet_type}
-                        onValueChange={(value) => handleInputChange('digital_wallet_type', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo de carteira" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Nenhuma</SelectItem>
-                          <SelectItem value="multicaixa">Multicaixa Express</SelectItem>
-                          <SelectItem value="unitel">Unitel Money</SelectItem>
-                          <SelectItem value="paypal">PayPal</SelectItem>
-                          <SelectItem value="other">Outro</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="digital_wallet_identifier">Identificador da Carteira</Label>
-                      <Input
-                        id="digital_wallet_identifier"
-                        value={editableData.digital_wallet_identifier}
-                        onChange={(e) => handleInputChange('digital_wallet_identifier', e.target.value)}
-                        placeholder="Email, telefone ou ID da carteira"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                <TabsContent value="personal">
+                  <Card className="border-border/50 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-foreground">Informações Pessoais</CardTitle>
+                      <CardDescription>Dados básicos do usuário</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Nome</Label>
+                          <Input
+                            id="name"
+                            value={editableData.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            placeholder="Nome completo"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={editableData.email}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            placeholder="email@exemplo.com"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Telefone</Label>
+                          <Input
+                            id="phone"
+                            value={editableData.phone}
+                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                            placeholder="+244 900 000 000"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="plan">Plano de Assinatura</Label>
+                          <Select
+                            value={editableData.plano_assinatura}
+                            onValueChange={(value) => handleInputChange('plano_assinatura', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um plano" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="basico">Básico</SelectItem>
+                              <SelectItem value="premium">Premium</SelectItem>
+                              <SelectItem value="empresarial">Empresarial</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
 
+                      <div className="flex justify-center pt-4">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowCreditModal(true)}
+                            className="flex-1"
+                          >
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            Adicionar Crédito
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowDebitModal(true)}
+                            className="flex-1"
+                          >
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            Aplicar Débito
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="financial">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className="border-border/50 shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="text-foreground">Dados Bancários</CardTitle>
+                        <CardDescription>
+                          Informações da conta bancária para saques
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="bank_name">Nome do Banco</Label>
+                          <Input
+                            id="bank_name"
+                            value={editableData.bank_name}
+                            onChange={(e) => handleInputChange('bank_name', e.target.value)}
+                            placeholder="Ex: Banco BAI"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="account_holder_name">Nome do Titular</Label>
+                          <Input
+                            id="account_holder_name"
+                            value={editableData.account_holder_name}
+                            onChange={(e) => handleInputChange('account_holder_name', e.target.value)}
+                            placeholder="Nome do titular da conta"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="account_number">IBAN</Label>
+                          <Input
+                            id="account_number"
+                            value={editableData.account_number}
+                            onChange={(e) => handleInputChange('account_number', e.target.value)}
+                            placeholder="PT50 0000 0000 0000 0000 0000 0"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-border/50 shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="text-foreground">Carteira Digital</CardTitle>
+                        <CardDescription>
+                          Configurações de carteira eletrônica
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="digital_wallet_type">Tipo de Carteira</Label>
+                          <Select
+                            value={editableData.digital_wallet_type || 'none'}
+                            onValueChange={(value) => handleInputChange('digital_wallet_type', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo de carteira" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Nenhuma</SelectItem>
+                              <SelectItem value="multicaixa">Multicaixa Express</SelectItem>
+                              <SelectItem value="unitel">Unitel Money</SelectItem>
+                              <SelectItem value="paypal">PayPal</SelectItem>
+                              <SelectItem value="other">Outro</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="digital_wallet_identifier">Identificador da Carteira</Label>
+                          <Input
+                            id="digital_wallet_identifier"
+                            value={editableData.digital_wallet_identifier}
+                            onChange={(e) => handleInputChange('digital_wallet_identifier', e.target.value)}
+                            placeholder="Email, telefone ou ID da carteira"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="details">
               {/* Detailed Tabs */}
               <Tabs defaultValue="transactions" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="transactions">Transações</TabsTrigger>
                   <TabsTrigger value="products">Produtos</TabsTrigger>
                   <TabsTrigger value="withdrawals">Saques</TabsTrigger>
+                  <TabsTrigger value="documents">Documentos</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="transactions">
@@ -798,7 +789,9 @@ export default function AdminUserDetail() {
                                   <TableCell className="font-medium">
                                     {transaction.amount.toLocaleString('pt-AO')} AOA
                                   </TableCell>
-                                  <TableCell>{getStatusBadge(transaction.status)}</TableCell>
+                                  <TableCell>
+                                    {getStatusBadge(transaction.status)}
+                                  </TableCell>
                                   <TableCell>
                                     {new Date(transaction.created_at).toLocaleDateString('pt-AO', {
                                       day: '2-digit',
@@ -819,8 +812,8 @@ export default function AdminUserDetail() {
                 <TabsContent value="products">
                   <Card className="border-border/50 shadow-lg">
                     <CardHeader>
-                      <CardTitle className="text-foreground">Produtos do Usuário</CardTitle>
-                      <CardDescription>Todos os produtos cadastrados</CardDescription>
+                      <CardTitle className="text-foreground">Produtos</CardTitle>
+                      <CardDescription>Lista de produtos criados pelo usuário</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="rounded-md border border-border/50">
@@ -841,21 +834,19 @@ export default function AdminUserDetail() {
                                 </TableCell>
                               </TableRow>
                             ) : (
-                              products.map((product) => (
+                              products.map((product: Product) => (
                                 <TableRow key={product.id}>
                                   <TableCell className="font-medium">{product.name}</TableCell>
                                   <TableCell>{product.price.toLocaleString('pt-AO')} AOA</TableCell>
                                   <TableCell>
-                                    {product.active ? (
-                                      <Badge className="bg-success/10 text-success border-success/20">Ativo</Badge>
-                                    ) : (
-                                      <Badge variant="secondary">Inativo</Badge>
-                                    )}
+                                    <Badge variant={product.active ? "default" : "secondary"}>
+                                      {product.active ? "Ativo" : "Inativo"}
+                                    </Badge>
                                   </TableCell>
                                   <TableCell>
                                     {new Date(product.created_at).toLocaleDateString('pt-AO', {
                                       day: '2-digit',
-                                      month: '2-digit',  
+                                      month: '2-digit',
                                       year: 'numeric'
                                     })}
                                   </TableCell>
@@ -873,7 +864,7 @@ export default function AdminUserDetail() {
                   <Card className="border-border/50 shadow-lg">
                     <CardHeader>
                       <CardTitle className="text-foreground">Histórico de Saques</CardTitle>
-                      <CardDescription>Todos os saques realizados pelo usuário</CardDescription>
+                      <CardDescription>Solicitações de saque realizadas pelo usuário</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="rounded-md border border-border/50">
@@ -919,9 +910,73 @@ export default function AdminUserDetail() {
                     </CardContent>
                   </Card>
                 </TabsContent>
+
+                <TabsContent value="documents">
+                  <Card className="border-border/50 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-foreground">Documentos de Identificação</CardTitle>
+                      <CardDescription>Documentos enviados pelo usuário</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* BI Document */}
+                        <div className="space-y-4">
+                          <h3 className="font-semibold text-foreground">Bilhete de Identidade (BI)</h3>
+                          {biImageUrl ? (
+                            <div className="border border-border rounded-lg p-4">
+                              <img 
+                                src={biImageUrl} 
+                                alt="Bilhete de Identidade" 
+                                className="w-full h-auto max-h-96 object-contain rounded-md"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  target.nextElementSibling!.style.display = 'block';
+                                }}
+                              />
+                              <div className="text-center text-muted-foreground text-sm mt-2 hidden">
+                                Erro ao carregar imagem
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="border border-dashed border-border rounded-lg p-8 text-center">
+                              <p className="text-muted-foreground">Nenhum documento BI encontrado</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* NIF Document */}
+                        <div className="space-y-4">
+                          <h3 className="font-semibold text-foreground">NIF da Empresa</h3>
+                          {nifImageUrl ? (
+                            <div className="border border-border rounded-lg p-4">
+                              <img 
+                                src={nifImageUrl} 
+                                alt="NIF da Empresa" 
+                                className="w-full h-auto max-h-96 object-contain rounded-md"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  target.nextElementSibling!.style.display = 'block';
+                                }}
+                              />
+                              <div className="text-center text-muted-foreground text-sm mt-2 hidden">
+                                Erro ao carregar imagem
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="border border-dashed border-border rounded-lg p-8 text-center">
+                              <p className="text-muted-foreground">Nenhum documento NIF encontrado</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
               </Tabs>
-            </div>
-          </main>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
