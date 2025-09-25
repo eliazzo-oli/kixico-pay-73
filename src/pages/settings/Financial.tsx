@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, FileText, Image, Home } from 'lucide-react';
+import { Upload, FileText, Home } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useState, useEffect } from 'react';
@@ -40,9 +40,12 @@ export default function Financial() {
         .from('profiles')
         .select('account_holder_name, account_number')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao carregar dados financeiros:', error);
+        return;
+      }
 
       if (data) {
         form.setValue('accountHolderName', data.account_holder_name || '');
@@ -71,7 +74,7 @@ export default function Financial() {
     }
 
     // Validação básica dos campos obrigatórios
-    if (!data.accountHolderName || !data.iban) {
+    if (!data.accountHolderName?.trim() || !data.iban?.trim()) {
       toast.error('Nome do titular e IBAN são campos obrigatórios');
       return;
     }
@@ -79,67 +82,60 @@ export default function Financial() {
     setLoading(true);
 
     try {
+      console.log('Iniciando salvamento dos dados financeiros...');
+      
       // Upload dos arquivos se existirem
-      let biUploadSuccess = true;
-      let nifUploadSuccess = true;
-
       if (biFile) {
         console.log('Fazendo upload do arquivo BI:', biFile.name);
         const biPath = `documents/${user.id}/bi/${biFile.name}`;
-        const { data: uploadData, error: biError } = await supabase.storage
+        const { error: biError } = await supabase.storage
           .from('avatars')
           .upload(biPath, biFile, { upsert: true });
         
         if (biError) {
           console.error('Erro no upload do BI:', biError);
-          biUploadSuccess = false;
           throw new Error(`Erro no upload do BI: ${biError.message}`);
         }
-        console.log('BI upload bem-sucedido:', uploadData);
+        console.log('BI carregado com sucesso');
       }
 
       if (nifFile) {
         console.log('Fazendo upload do arquivo NIF:', nifFile.name);
         const nifPath = `documents/${user.id}/nif/${nifFile.name}`;
-        const { data: uploadData, error: nifError } = await supabase.storage
+        const { error: nifError } = await supabase.storage
           .from('avatars')
           .upload(nifPath, nifFile, { upsert: true });
         
         if (nifError) {
           console.error('Erro no upload do NIF:', nifError);
-          nifUploadSuccess = false;
           throw new Error(`Erro no upload do NIF: ${nifError.message}`);
         }
-        console.log('NIF upload bem-sucedido:', uploadData);
+        console.log('NIF carregado com sucesso');
       }
 
       // Atualizar dados financeiros na base de dados
-      console.log('Atualizando dados financeiros no perfil do usuário...');
+      console.log('Atualizando dados na tabela profiles...');
       const updateData = {
         account_holder_name: data.accountHolderName.trim(),
         account_number: data.iban.trim(),
       };
 
-      const { data: updateResult, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('profiles')
         .update(updateData)
-        .eq('user_id', user.id)
-        .select();
+        .eq('user_id', user.id);
 
       if (updateError) {
         console.error('Erro ao atualizar perfil:', updateError);
-        throw new Error(`Erro ao salvar dados financeiros: ${updateError.message}`);
+        throw new Error(`Erro ao salvar dados: ${updateError.message}`);
       }
 
-      console.log('Dados financeiros atualizados com sucesso:', updateResult);
-      
-      // Recarregar os dados para verificar se foram salvos
-      await loadFinancialData();
-      
+      console.log('Dados salvos com sucesso!');
       toast.success('Dados financeiros salvos com sucesso!');
+      
     } catch (error: any) {
-      console.error('Erro completo ao salvar dados financeiros:', error);
-      toast.error(error.message || 'Erro ao salvar dados financeiros. Verifique os logs para mais detalhes.');
+      console.error('Erro completo:', error);
+      toast.error(error.message || 'Erro ao salvar dados financeiros');
     } finally {
       setLoading(false);
     }
