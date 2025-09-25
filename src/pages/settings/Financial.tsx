@@ -70,52 +70,76 @@ export default function Financial() {
       return;
     }
 
+    // Validação básica dos campos obrigatórios
+    if (!data.accountHolderName || !data.iban) {
+      toast.error('Nome do titular e IBAN são campos obrigatórios');
+      return;
+    }
+
     setLoading(true);
 
     try {
       // Upload dos arquivos se existirem
-      let biUrl = null;
-      let nifUrl = null;
+      let biUploadSuccess = true;
+      let nifUploadSuccess = true;
 
       if (biFile) {
+        console.log('Fazendo upload do arquivo BI:', biFile.name);
         const biPath = `documents/${user.id}/bi/${biFile.name}`;
-        const { error: biError } = await supabase.storage
+        const { data: uploadData, error: biError } = await supabase.storage
           .from('avatars')
           .upload(biPath, biFile, { upsert: true });
         
-        if (biError) throw new Error(`Erro no upload do BI: ${biError.message}`);
-        biUrl = biPath;
+        if (biError) {
+          console.error('Erro no upload do BI:', biError);
+          biUploadSuccess = false;
+          throw new Error(`Erro no upload do BI: ${biError.message}`);
+        }
+        console.log('BI upload bem-sucedido:', uploadData);
       }
 
       if (nifFile) {
+        console.log('Fazendo upload do arquivo NIF:', nifFile.name);
         const nifPath = `documents/${user.id}/nif/${nifFile.name}`;
-        const { error: nifError } = await supabase.storage
+        const { data: uploadData, error: nifError } = await supabase.storage
           .from('avatars')
           .upload(nifPath, nifFile, { upsert: true });
         
-        if (nifError) throw new Error(`Erro no upload do NIF: ${nifError.message}`);
-        nifUrl = nifPath;
+        if (nifError) {
+          console.error('Erro no upload do NIF:', nifError);
+          nifUploadSuccess = false;
+          throw new Error(`Erro no upload do NIF: ${nifError.message}`);
+        }
+        console.log('NIF upload bem-sucedido:', uploadData);
       }
 
       // Atualizar dados financeiros na base de dados
-      const updateData: any = {
-        account_holder_name: data.accountHolderName,
-        account_number: data.iban,
+      console.log('Atualizando dados financeiros no perfil do usuário...');
+      const updateData = {
+        account_holder_name: data.accountHolderName.trim(),
+        account_number: data.iban.trim(),
       };
 
-      const { error: updateError } = await supabase
+      const { data: updateResult, error: updateError } = await supabase
         .from('profiles')
         .update(updateData)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .select();
 
       if (updateError) {
-        throw new Error(`Erro ao salvar dados: ${updateError.message}`);
+        console.error('Erro ao atualizar perfil:', updateError);
+        throw new Error(`Erro ao salvar dados financeiros: ${updateError.message}`);
       }
 
+      console.log('Dados financeiros atualizados com sucesso:', updateResult);
+      
+      // Recarregar os dados para verificar se foram salvos
+      await loadFinancialData();
+      
       toast.success('Dados financeiros salvos com sucesso!');
     } catch (error: any) {
-      console.error('Erro ao salvar dados financeiros:', error);
-      toast.error(error.message || 'Erro ao salvar dados financeiros');
+      console.error('Erro completo ao salvar dados financeiros:', error);
+      toast.error(error.message || 'Erro ao salvar dados financeiros. Verifique os logs para mais detalhes.');
     } finally {
       setLoading(false);
     }
