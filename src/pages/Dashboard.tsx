@@ -68,6 +68,11 @@ interface DashboardStats {
   totalTransactions: number;
 }
 
+interface UserProfile {
+  name: string;
+  fantasy_name?: string;
+}
+
 export default function Dashboard() {
   const { user, signOut, loading } = useAuth();
   const { currentPlan, features, canCreateProduct, getPlanDisplayName } = usePlan();
@@ -75,6 +80,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     totalSales: 0,
     productsSold: 0,
@@ -124,6 +130,19 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
+      setIsLoading(true);
+      
+      // Fetch user profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('name, fantasy_name')
+        .eq('user_id', user?.id)
+        .single();
+      
+      if (profileData) {
+        setUserProfile(profileData);
+      }
+      
       // Fetch products
       const { data: productsData, error: productsError } = await supabase
         .from('products')
@@ -283,6 +302,18 @@ export default function Dashboard() {
 
           <main className="flex-1 p-6">
             <TrialBanner />
+            
+            {/* Welcome Section */}
+            {userProfile && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border border-border/30">
+                <h2 className="text-xl font-semibold text-foreground">
+                  Bem-vindo, {userProfile.fantasy_name || userProfile.name}! 👋
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Aqui você pode gerenciar seus produtos e acompanhar suas vendas.
+                </p>
+              </div>
+            )}
             
             {/* Plan Status Bar */}
             <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border border-border/50">

@@ -15,6 +15,7 @@ interface AccountData {
   name: string;
   email: string;
   phone: string;
+  fantasy_name: string;
   avatar_url?: string;
 }
 
@@ -26,8 +27,8 @@ export default function Account() {
     name: '',
     email: '',
     phone: '',
+    fantasy_name: '',
   });
-  const [fantasyName, setFantasyName] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -60,9 +61,9 @@ export default function Account() {
           name: data.name || '',
           email: data.email || user?.email || '',
           phone: data.phone || '',
+          fantasy_name: data.fantasy_name || '',
           avatar_url: data.avatar_url || '',
         });
-        setFantasyName(''); // Campo adicional não salvo no banco
       } else {
         setAccountData(prev => ({
           ...prev,
@@ -137,6 +138,7 @@ export default function Account() {
             name: accountData.name,
             email: accountData.email,
             phone: accountData.phone,
+            fantasy_name: accountData.fantasy_name,
             avatar_url: avatarUrl,
             updated_at: new Date().toISOString(),
           })
@@ -152,6 +154,7 @@ export default function Account() {
             name: accountData.name,
             email: accountData.email,
             phone: accountData.phone,
+            fantasy_name: accountData.fantasy_name,
             avatar_url: avatarUrl,
           });
         
@@ -343,8 +346,8 @@ export default function Account() {
               <Label htmlFor="fantasyName">Nome Fantasia</Label>
               <Input
                 id="fantasyName"
-                value={fantasyName}
-                onChange={(e) => setFantasyName(e.target.value)}
+                value={accountData.fantasy_name}
+                onChange={(e) => handleInputChange('fantasy_name', e.target.value)}
                 placeholder="Digite seu nome fantasia"
               />
             </div>

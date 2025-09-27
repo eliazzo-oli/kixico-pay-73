@@ -210,6 +210,7 @@ export type Database = {
           digital_wallet_identifier: string | null
           digital_wallet_type: string | null
           email: string
+          fantasy_name: string | null
           id: string
           name: string
           phone: string | null
@@ -230,6 +231,7 @@ export type Database = {
           digital_wallet_identifier?: string | null
           digital_wallet_type?: string | null
           email: string
+          fantasy_name?: string | null
           id?: string
           name: string
           phone?: string | null
@@ -250,6 +252,7 @@ export type Database = {
           digital_wallet_identifier?: string | null
           digital_wallet_type?: string | null
           email?: string
+          fantasy_name?: string | null
           id?: string
           name?: string
           phone?: string | null
