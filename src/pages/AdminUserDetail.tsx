@@ -365,15 +365,12 @@ export default function AdminUserDetail() {
     }
 
     try {
-      const transactionAmount = type === 'debit' ? -amount : amount;
-      const paymentMethod = type === 'debit' ? 'debito' : 'credito';
-
       const { data, error } = await supabase.functions.invoke('admin-manual-adjustment', {
         body: {
           userId: id,
-          amount: transactionAmount,
-          justification: adjustmentForm.justification,
-          paymentMethod: paymentMethod
+          amount: amount,
+          type,
+          justification: adjustmentForm.justification
         }
       });
 
