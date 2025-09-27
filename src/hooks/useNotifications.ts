@@ -15,6 +15,7 @@ interface Notification {
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [userRegistrationDate, setUserRegistrationDate] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -27,10 +28,23 @@ export function useNotifications() {
 
     async function fetchNotifications() {
       try {
+        // Primeiro buscar a data de registro do usuário
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('created_at')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profileError) throw profileError;
+
+        const registrationDate = profileData?.created_at;
+        setUserRegistrationDate(registrationDate);
+
+        // Buscar notificações pessoais e globais criadas após o registro
         const { data: notificationsData, error: notificationsError } = await supabase
           .from('notifications')
           .select('*')
-          .or(`user_id.eq.${user.id},user_id.is.null`)
+          .or(`user_id.eq.${user.id},and(user_id.is.null,created_at.gte.${registrationDate})`)
           .order('created_at', { ascending: false })
           .limit(20);
 
@@ -76,17 +90,25 @@ export function useNotifications() {
         },
         (payload) => {
           const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev.slice(0, 19)]);
           
-          if (!newNotification.read) {
-            setUnreadCount(prev => prev + 1);
+          // Verificar se a notificação deve ser exibida para este usuário
+          const shouldShowNotification = newNotification.user_id === user.id || 
+            (newNotification.user_id === null && userRegistrationDate && 
+             new Date(newNotification.created_at) >= new Date(userRegistrationDate));
+          
+          if (shouldShowNotification) {
+            setNotifications(prev => [newNotification, ...prev.slice(0, 19)]);
+            
+            if (!newNotification.read) {
+              setUnreadCount(prev => prev + 1);
+            }
+            
+            // Show toast for new notification
+            toast({
+              title: newNotification.sender,
+              description: newNotification.message,
+            });
           }
-          
-          // Show toast for new notification
-          toast({
-            title: newNotification.sender,
-            description: newNotification.message,
-          });
         }
       )
       .on(
