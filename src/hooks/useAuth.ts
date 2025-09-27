@@ -111,7 +111,7 @@ export function useAuth() {
   const signUp = async (email: string, password: string, name: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -121,6 +121,26 @@ export function useAuth() {
         }
       }
     });
+
+    // Send welcome email after successful signup
+    if (!error && data.user) {
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            to: email,
+            template: 'welcome',
+            data: {
+              userName: name,
+              dashboardUrl: `${window.location.origin}/dashboard`
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error('Welcome email error:', emailError);
+        // Don't fail registration if email fails
+      }
+    }
+
     return { error };
   };
 

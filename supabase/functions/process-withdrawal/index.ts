@@ -104,6 +104,32 @@ serve(async (req) => {
       );
     }
 
+    // Get user profile for email
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('user_id', user.id)
+      .single();
+
+    // Send withdrawal request confirmation email
+    if (profile) {
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            to: profile.email,
+            template: 'withdrawal-request',
+            data: {
+              userName: profile.name,
+              withdrawalAmount: amount
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error('Withdrawal request email error:', emailError);
+        // Don't fail the withdrawal if email fails
+      }
+    }
+
     // Log da operação
     console.log(`Saque solicitado: Usuário ${user.id}, Valor: ${amount}, ID: ${withdrawal.id}`);
 

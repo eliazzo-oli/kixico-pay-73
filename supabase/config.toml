@@ -1,5 +1,8 @@
 project_id = "tumanpeywddnixgyfale"
 
+[functions.send-transactional-email]
+verify_jwt = false
+
 [functions.validate-coupon]
 verify_jwt = false
 

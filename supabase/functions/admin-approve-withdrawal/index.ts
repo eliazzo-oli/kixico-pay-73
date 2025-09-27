@@ -135,6 +135,32 @@ serve(async (req) => {
       );
     }
 
+    // Get user profile for email
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('user_id', withdrawal.user_id)
+      .single();
+
+    // Send withdrawal approved email
+    if (profile) {
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            to: profile.email,
+            template: 'withdrawal-approved',
+            data: {
+              userName: profile.name,
+              withdrawalAmount: withdrawal.amount
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error('Withdrawal approved email error:', emailError);
+        // Don't fail the withdrawal approval if email fails
+      }
+    }
+
     console.log(`Saque aprovado: saque=${withdrawalId} tx=${tx?.id} user=${withdrawal.user_id}`);
 
     return new Response(
