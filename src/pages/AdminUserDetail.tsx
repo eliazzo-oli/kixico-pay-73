@@ -455,7 +455,11 @@ export default function AdminUserDetail() {
               <div className="h-6 w-px bg-border mx-2" />
               
               <div className="flex items-center gap-3">
-                <UserAvatar userId={userDetail.user_id} size="sm" />
+                <UserAvatar 
+                  userId={userDetail.user_id} 
+                  userEmail={userDetail.email} 
+                  onSignOut={() => {}} 
+                />
                 <div>
                   <h1 className="text-lg font-semibold text-foreground">{userDetail.name}</h1>
                   <p className="text-sm text-muted-foreground">{userDetail.email}</p>
@@ -929,9 +933,7 @@ export default function AdminUserDetail() {
                                 alt="Bilhete de Identidade" 
                                 className="w-full h-auto max-h-96 object-contain rounded-md"
                                 onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  target.nextElementSibling!.style.display = 'block';
+                                  console.log('Erro ao carregar imagem BI');
                                 }}
                               />
                               <div className="text-center text-muted-foreground text-sm mt-2 hidden">
@@ -955,9 +957,7 @@ export default function AdminUserDetail() {
                                 alt="NIF da Empresa" 
                                 className="w-full h-auto max-h-96 object-contain rounded-md"
                                 onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  target.nextElementSibling!.style.display = 'block';
+                                  console.log('Erro ao carregar imagem NIF');
                                 }}
                               />
                               <div className="text-center text-muted-foreground text-sm mt-2 hidden">
@@ -977,6 +977,8 @@ export default function AdminUserDetail() {
               </Tabs>
             </TabsContent>
           </Tabs>
+        </div>
+          </main>
         </div>
       </div>
 
