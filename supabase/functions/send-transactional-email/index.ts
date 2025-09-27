@@ -1,36 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "https://esm.sh/resend@2.1.0";
 
-interface ResendEmail {
-  from: string;
-  to: string[];
-  subject: string;
-  html: string;
-}
-
-interface ResendResponse {
-  data?: { id?: string };
-  error?: { message: string };
-}
-
-// Simple Resend API client
-const sendEmail = async (apiKey: string, email: ResendEmail): Promise<ResendResponse> => {
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(email),
-  });
-
-  const result = await response.json();
-  
-  if (!response.ok) {
-    return { error: result };
-  }
-  
-  return { data: result };
-};
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -269,16 +240,12 @@ const handler = async (req: Request): Promise<Response> => {
     const subject = templateConfig.subject(data);
     const html = templateConfig.html(data);
 
-    const emailResponse = await sendEmail(Deno.env.get("RESEND_API_KEY") || "", {
-      from: "KixicoPay <nao-responder@resend.dev>", // You'll need to configure your domain
+    const emailResponse = await resend.emails.send({
+      from: "KixicoPay <onboarding@resend.dev>", // You'll need to configure your domain
       to: [to],
       subject,
       html,
     });
-
-    if (emailResponse.error) {
-      throw new Error(emailResponse.error.message);
-    }
 
     console.log("Email sent successfully:", emailResponse);
 
