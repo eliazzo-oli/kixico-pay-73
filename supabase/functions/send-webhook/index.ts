@@ -91,7 +91,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in send-webhook function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -192,7 +192,7 @@ async function sendWebhookToEndpoint(supabase: any, endpoint: any, webhookEvent:
       .insert({
         webhook_endpoint_id: endpoint.id,
         webhook_event_id: webhookEvent.id,
-        error_message: error.message,
+        error_message: error instanceof Error ? error.message : 'Unknown error',
         succeeded: false,
         attempt_number: 1,
       });

@@ -67,7 +67,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in webhook-retry function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -177,7 +177,7 @@ async function processRetry(supabase: any, retry: any) {
     await supabase
       .from('webhook_attempts')
       .update({
-        error_message: error.message,
+        error_message: error instanceof Error ? error.message : 'Unknown error',
         next_retry_at: null,
       })
       .eq('id', retry.id);
