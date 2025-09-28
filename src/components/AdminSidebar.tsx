@@ -33,6 +33,7 @@ const adminItems = [
   { title: "Análise de Usuários", url: "/admin/analytics", icon: TrendingUp },
   { title: "Transações", url: "/admin/transactions", icon: CreditCard },
   { title: "Saques", url: "/admin/withdrawals", icon: DollarSign },
+  { title: "Verificações KYC", url: "/admin/kyc-verifications", icon: Shield },
   { title: "Relatórios", url: "/admin/reports", icon: BarChart3 },
 ];
 

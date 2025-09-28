@@ -27,6 +27,7 @@ import Account from "./pages/settings/Account";
 import Financial from "./pages/settings/Financial";
 import Wallet from "./pages/settings/Wallet";
 import Help from "./pages/settings/Help";
+import KycVerification from "./pages/settings/KycVerification";
 import Support from "./pages/Support";
 import Desenvolvedores from "./pages/Desenvolvedores";
 import About from "./pages/About";
@@ -43,6 +44,7 @@ import AdminUserDetail from "./pages/AdminUserDetail";
 import AdminTransactions from "./pages/AdminTransactions";
 import AdminReports from "./pages/AdminReports";
 import AdminWithdrawals from "./pages/AdminWithdrawals";
+import AdminKycVerifications from "./pages/AdminKycVerifications";
 import Invoice from "./pages/Invoice";
 import Webhooks from "./pages/Webhooks";
 import Security from "./pages/settings/Security";
@@ -166,6 +168,11 @@ const App = () => {
                   <AdminWithdrawals />
                 </ProtectedAdminRoute>
               } />
+              <Route path="/admin/kyc-verifications" element={
+                <ProtectedAdminRoute>
+                  <AdminKycVerifications />
+                </ProtectedAdminRoute>
+              } />
               <Route path="/admin/reports" element={
                 <ProtectedAdminRoute>
                   <AdminReports />
@@ -182,6 +189,7 @@ const App = () => {
                 <Route path="financeiro" element={<Financial />} />
                 <Route path="carteira" element={<Wallet />} />
                 <Route path="seguranca" element={<Security />} />
+                <Route path="verificacao" element={<KycVerification />} />
                 <Route path="ajuda" element={<Help />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

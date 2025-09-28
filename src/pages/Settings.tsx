@@ -33,6 +33,12 @@ const settingsItems = [
     description: 'Autenticação de dois fatores e outras configurações'
   },
   {
+    title: 'Verificação de Identidade',
+    url: '/configuracoes/verificacao',
+    icon: Shield,
+    description: 'Verificar identidade (KYC) para usar todas as funcionalidades'
+  },
+  {
     title: 'Central de ajuda',
     url: '/configuracoes/ajuda',
     icon: HelpCircle,

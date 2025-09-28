@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { TrialBanner } from '@/components/TrialBanner';
 import { SaleNotificationPopup } from '@/components/SaleNotificationPopup';
+import KycBanner from '@/components/KycBanner';
 import { useSaleNotifications } from '@/hooks/useSaleNotifications';
 
 import kixicoPayLogo from "/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png";
@@ -354,6 +355,7 @@ export default function Dashboard() {
 
           <main className="flex-1 p-6">
             <TrialBanner />
+            <KycBanner />
             
             {/* Welcome Section */}
             {userProfile && (

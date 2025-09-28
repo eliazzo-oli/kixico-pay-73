@@ -239,11 +239,18 @@ export type Database = {
           email: string
           fantasy_name: string | null
           id: string
+          id_back_url: string | null
+          id_front_url: string | null
           is_two_factor_enabled: boolean
+          kyc_rejection_reason: string | null
+          kyc_reviewed_at: string | null
+          kyc_status: string | null
+          kyc_submitted_at: string | null
           name: string
           phone: string | null
           plano_assinatura: string
           preferred_theme: string | null
+          selfie_url: string | null
           status: string
           trial_end_date: string | null
           two_factor_secret: string | null
@@ -262,11 +269,18 @@ export type Database = {
           email: string
           fantasy_name?: string | null
           id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
           is_two_factor_enabled?: boolean
+          kyc_rejection_reason?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_status?: string | null
+          kyc_submitted_at?: string | null
           name: string
           phone?: string | null
           plano_assinatura?: string
           preferred_theme?: string | null
+          selfie_url?: string | null
           status?: string
           trial_end_date?: string | null
           two_factor_secret?: string | null
@@ -285,11 +299,18 @@ export type Database = {
           email?: string
           fantasy_name?: string | null
           id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
           is_two_factor_enabled?: boolean
+          kyc_rejection_reason?: string | null
+          kyc_reviewed_at?: string | null
+          kyc_status?: string | null
+          kyc_submitted_at?: string | null
           name?: string
           phone?: string | null
           plano_assinatura?: string
           preferred_theme?: string | null
+          selfie_url?: string | null
           status?: string
           trial_end_date?: string | null
           two_factor_secret?: string | null
