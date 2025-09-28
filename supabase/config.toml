@@ -17,3 +17,15 @@ verify_jwt = true
 
 [functions.admin-manual-adjustment]
 verify_jwt = true
+
+[functions.2fa-generate]
+verify_jwt = true
+
+[functions.2fa-enable]
+verify_jwt = true
+
+[functions.2fa-verify]
+verify_jwt = false
+
+[functions.export-transactions]
+verify_jwt = true

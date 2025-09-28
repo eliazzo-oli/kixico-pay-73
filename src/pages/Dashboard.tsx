@@ -38,7 +38,8 @@ import {
   FileText,
   Users,
   Zap,
-  Crown
+  Crown,
+  Download
 } from 'lucide-react';
 
 interface Product {
@@ -253,6 +254,57 @@ export default function Dashboard() {
       toast({
         title: 'Erro',
         description: 'Erro ao gerar link de pagamento',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const exportTransactions = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.access_token) {
+        toast({
+          title: 'Erro',
+          description: 'Usuário não autenticado',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const response = await supabase.functions.invoke('export-transactions', {
+        headers: {
+          Authorization: `Bearer ${session.session.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      // The response data should be the CSV content
+      const csvContent = response.data;
+      
+      // Create and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `historico_transacoes_kixicopay_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Sucesso',
+        description: 'Histórico de transações exportado com sucesso!',
+      });
+    } catch (error) {
+      console.error('Error exporting transactions:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao exportar histórico de transações',
         variant: 'destructive',
       });
     }
@@ -509,10 +561,16 @@ export default function Dashboard() {
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-foreground">Transações Recentes</h2>
-                    <Button onClick={handleCreateProduct} variant="default" size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Novo Produto
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button onClick={exportTransactions} variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Exportar Histórico
+                      </Button>
+                      <Button onClick={handleCreateProduct} variant="default" size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Novo Produto
+                      </Button>
+                    </div>
                   </div>
                   
                   <Card className="border-border/50 shadow-lg">
@@ -712,10 +770,16 @@ export default function Dashboard() {
                   <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-semibold text-foreground">Transações Recentes</h2>
-                      <Button onClick={handleCreateProduct} variant="default" size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Novo Produto
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button onClick={exportTransactions} variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-2" />
+                          Exportar Histórico
+                        </Button>
+                        <Button onClick={handleCreateProduct} variant="default" size="sm">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Novo Produto
+                        </Button>
+                      </div>
                     </div>
                     
                     <Card className="border-border/50 shadow-lg">
