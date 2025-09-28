@@ -33,6 +33,14 @@ export default function Auth() {
       let result;
       if (isLogin) {
         result = await signIn(email, password);
+        
+        // Check if 2FA is required
+        if (result.requires2FA) {
+          navigate('/2fa-verify', { 
+            state: { email, password } 
+          });
+          return;
+        }
       } else {
         if (!name.trim()) {
           toast({

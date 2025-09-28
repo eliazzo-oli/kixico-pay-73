@@ -154,9 +154,16 @@ export function useAuth() {
     if (!error && data.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('status, trial_end_date, plano_assinatura')
+        .select('status, trial_end_date, plano_assinatura, is_two_factor_enabled')
         .eq('user_id', data.user.id)
         .single();
+
+      // Check if 2FA is enabled before proceeding with other checks
+      if (profile?.is_two_factor_enabled) {
+        // Sign out the user since they need to complete 2FA
+        await supabase.auth.signOut();
+        return { requires2FA: true };
+      }
         
       if (profile?.status === 'suspended' || profile?.status === 'suspenso') {
         await supabase.auth.signOut();
@@ -191,6 +198,9 @@ export function useAuth() {
           }
         }
       }
+
+      // Set user online status for successful logins without 2FA
+      await setProfileOnlineStatus(data.user.id, 'online');
     }
     
     return { error };

@@ -45,6 +45,8 @@ import AdminReports from "./pages/AdminReports";
 import AdminWithdrawals from "./pages/AdminWithdrawals";
 import Invoice from "./pages/Invoice";
 import Webhooks from "./pages/Webhooks";
+import Security from "./pages/settings/Security";
+import TwoFactorVerify from "./pages/TwoFactorVerify";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +64,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/2fa-verify" element={<TwoFactorVerify />} />
               <Route path="/demo" element={<Demo />} />
               <Route path="/precos" element={<Precos />} />
               <Route path="/produtos" element={<Produtos />} />
@@ -174,6 +177,7 @@ const App = () => {
                 <Route path="conta" element={<Account />} />
                 <Route path="financeiro" element={<Financial />} />
                 <Route path="carteira" element={<Wallet />} />
+                <Route path="seguranca" element={<Security />} />
                 <Route path="ajuda" element={<Help />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

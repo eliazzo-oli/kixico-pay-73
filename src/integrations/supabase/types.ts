@@ -212,12 +212,14 @@ export type Database = {
           email: string
           fantasy_name: string | null
           id: string
+          is_two_factor_enabled: boolean
           name: string
           phone: string | null
           plano_assinatura: string
           preferred_theme: string | null
           status: string
           trial_end_date: string | null
+          two_factor_secret: string | null
           updated_at: string
           user_id: string
         }
@@ -233,12 +235,14 @@ export type Database = {
           email: string
           fantasy_name?: string | null
           id?: string
+          is_two_factor_enabled?: boolean
           name: string
           phone?: string | null
           plano_assinatura?: string
           preferred_theme?: string | null
           status?: string
           trial_end_date?: string | null
+          two_factor_secret?: string | null
           updated_at?: string
           user_id: string
         }
@@ -254,13 +258,42 @@ export type Database = {
           email?: string
           fantasy_name?: string | null
           id?: string
+          is_two_factor_enabled?: boolean
           name?: string
           phone?: string | null
           plano_assinatura?: string
           preferred_theme?: string | null
           status?: string
           trial_end_date?: string | null
+          two_factor_secret?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recovery_codes: {
+        Row: {
+          created_at: string
+          hashed_code: string
+          id: string
+          updated_at: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hashed_code: string
+          id?: string
+          updated_at?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hashed_code?: string
+          id?: string
+          updated_at?: string
+          used_at?: string | null
           user_id?: string
         }
         Relationships: []

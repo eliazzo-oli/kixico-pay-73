@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, CreditCard, Wallet, HelpCircle, LogOut, Settings as SettingsIcon } from 'lucide-react';
+import { User, CreditCard, Wallet, HelpCircle, LogOut, Settings as SettingsIcon, Shield } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +25,12 @@ const settingsItems = [
     url: '/configuracoes/carteira',
     icon: Wallet,
     description: 'Saldo e histórico de transações'
+  },
+  {
+    title: 'Segurança',
+    url: '/configuracoes/seguranca',
+    icon: Shield,
+    description: 'Autenticação de dois fatores e outras configurações'
   },
   {
     title: 'Central de ajuda',
