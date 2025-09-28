@@ -93,10 +93,11 @@ serve(async (req) => {
 
     console.log('Generated otpauth URL');
 
-    // Generate QR code
-    const qrCodeDataURL = await QRCode.toDataURL(otpauthUrl);
+    // Generate QR code as SVG data URL (avoids canvas dependency)
+    const svgString = await QRCode.toString(otpauthUrl, { type: 'svg' });
+    const qrCodeDataURL = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgString);
     
-    console.log('Generated QR code');
+    console.log('Generated QR code (SVG)');
 
     // Store temporary secret (not yet activated)
     const { error: updateError } = await supabaseClient
