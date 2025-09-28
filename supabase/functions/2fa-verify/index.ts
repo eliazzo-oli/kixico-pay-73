@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { authenticator } from 'https://esm.sh/otplib@12.0.1';
+import * as OTPAuth from 'https://esm.sh/otpauth@9.2.3';
 import { createHash } from "https://deno.land/std@0.168.0/node/crypto.ts";
 
 const corsHeaders = {
@@ -79,15 +79,18 @@ serve(async (req) => {
     if (code) {
       // Verify TOTP code
       console.log('Verifying TOTP code');
-      isValid = authenticator.verify({
-        token: code,
+      const totp = new OTPAuth.TOTP({
+        algorithm: 'SHA1',
+        digits: 6,
+        period: 30,
         secret: profile.two_factor_secret,
       });
+      isValid = totp.validate({ token: code, window: 1 }) !== null;
       console.log('TOTP verification result:', isValid);
     } else if (recoveryCode) {
       // Verify recovery code
       console.log('Verifying recovery code');
-      const hashedRecoveryCode = createHash('sha256').update(recoveryCode.toUpperCase()).digest('hex');
+      const hashedRecoveryCode = createHash('sha256').update(recoveryCode.toUpperCase()).digest('hex').toString();
       
       const { data: recoveryCodeData, error: recoveryError } = await supabaseClient
         .from('recovery_codes')
@@ -141,9 +144,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in 2fa-verify function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error?.message || 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

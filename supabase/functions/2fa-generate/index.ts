@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { authenticator } from 'https://esm.sh/otplib@12.0.1';
+import * as OTPAuth from 'https://esm.sh/otpauth@9.2.3';
 import QRCode from 'https://esm.sh/qrcode@1.5.3';
 
 const corsHeaders = {
@@ -65,14 +65,31 @@ serve(async (req) => {
       });
     }
 
-    // Generate secret
-    const secret = authenticator.generateSecret();
+    // Generate secret - manual base32 encoding
+    const generateSecret = () => {
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+      let secret = '';
+      for (let i = 0; i < 32; i++) {
+        secret += alphabet[Math.floor(Math.random() * 32)];
+      }
+      return secret;
+    };
+    
+    const secretBase32 = generateSecret();
     console.log('Generated secret for user');
 
     // Create otpauth URL
     const service = 'KixicoPay';
     const account = profile.email;
-    const otpauthUrl = authenticator.keyuri(account, service, secret);
+    const totp = new OTPAuth.TOTP({
+      issuer: service,
+      label: account,
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+      secret: secretBase32,
+    });
+    const otpauthUrl = totp.toString();
 
     console.log('Generated otpauth URL');
 
@@ -84,7 +101,7 @@ serve(async (req) => {
     // Store temporary secret (not yet activated)
     const { error: updateError } = await supabaseClient
       .from('profiles')
-      .update({ two_factor_secret: secret })
+      .update({ two_factor_secret: secretBase32 })
       .eq('user_id', user.id);
 
     if (updateError) {
@@ -99,15 +116,15 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       qrCode: qrCodeDataURL,
-      secret: secret,
-      manualEntryKey: secret.match(/.{1,4}/g)?.join(' ') || secret
+      secret: secretBase32,
+      manualEntryKey: secretBase32.match(/.{1,4}/g)?.join(' ') || secretBase32
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in 2fa-generate function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error?.message || 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
