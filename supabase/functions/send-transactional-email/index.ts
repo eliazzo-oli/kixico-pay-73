@@ -10,7 +10,7 @@ const corsHeaders = {
 
 interface EmailRequest {
   to: string;
-  template: 'welcome' | 'password-reset' | 'sale-notification' | 'withdrawal-request' | 'withdrawal-approved';
+  template: 'welcome' | 'password-reset' | 'password-changed' | 'sale-notification' | 'withdrawal-request' | 'withdrawal-approved';
   data: {
     userName?: string;
     productName?: string;
@@ -93,6 +93,47 @@ const emailTemplates = {
             </div>
             <a href="${data.resetUrl}" class="button">Criar Nova Senha</a>
             <p>Se não solicitou esta alteração, pode ignorar este e-mail com segurança.</p>
+          </div>
+          <div class="footer">
+            <p>© 2025 KixicoPay - Plataforma de Pagamentos Digitais</p>
+            <p>Este é um e-mail automático, por favor não responda.</p>
+          </div>
+        </body>
+      </html>
+    `
+  },
+  'password-changed': {
+    subject: () => 'Senha alterada com sucesso - KixicoPay',
+    html: (data: any) => `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+            .header { text-align: center; background: #f8f9fa; padding: 20px; }
+            .logo { font-size: 24px; font-weight: bold; color: #2563eb; }
+            .content { padding: 30px 20px; }
+            .success { background: #d1fae5; color: #065f46; padding: 15px; border-radius: 6px; margin: 15px 0; text-align: center; }
+            .warning { background: #fef2f2; padding: 15px; border-radius: 6px; margin: 15px 0; color: #dc2626; }
+            .footer { text-align: center; padding: 20px; background: #f8f9fa; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">KixicoPay</div>
+          </div>
+          <div class="content">
+            <div class="success">
+              <h2>✅ Senha Alterada com Sucesso</h2>
+            </div>
+            <p>Olá ${data.userName},</p>
+            <p>A sua senha da KixicoPay foi alterada com sucesso!</p>
+            <p><strong>Data e hora:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+            <div class="warning">
+              <strong>Não foi você?</strong> Se não alterou a sua senha, entre em contato connosco imediatamente: suporte@kixicopay.com
+            </div>
+            <p>A sua conta está segura e pode continuar a usar a KixicoPay normalmente.</p>
           </div>
           <div class="footer">
             <p>© 2025 KixicoPay - Plataforma de Pagamentos Digitais</p>

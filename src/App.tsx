@@ -47,6 +47,8 @@ import Invoice from "./pages/Invoice";
 import Webhooks from "./pages/Webhooks";
 import Security from "./pages/settings/Security";
 import TwoFactorVerify from "./pages/TwoFactorVerify";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,8 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/2fa-verify" element={<TwoFactorVerify />} />
               <Route path="/demo" element={<Demo />} />
               <Route path="/precos" element={<Precos />} />

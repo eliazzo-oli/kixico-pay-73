@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import TwoFactorSettings from '@/components/TwoFactorSettings';
+import ChangePasswordModal from '@/components/ChangePasswordModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -10,6 +12,7 @@ export default function Security() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -109,9 +112,13 @@ export default function Security() {
                   Actualize a sua palavra-passe regularmente
                 </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Disponível em breve
-              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsChangePasswordOpen(true)}
+              >
+                Alterar
+              </Button>
             </div>
             
             <div className="flex items-center justify-between py-3">
@@ -128,6 +135,11 @@ export default function Security() {
           </div>
         </CardContent>
       </Card>
+
+      <ChangePasswordModal 
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </div>
   );
 }

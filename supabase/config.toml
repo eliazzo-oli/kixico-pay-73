@@ -29,3 +29,12 @@ verify_jwt = false
 
 [functions.export-transactions]
 verify_jwt = true
+
+[functions.request-password-reset]
+verify_jwt = false
+
+[functions.reset-password]
+verify_jwt = false
+
+[functions.change-password]
+verify_jwt = true

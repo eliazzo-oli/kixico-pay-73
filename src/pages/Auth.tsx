@@ -151,6 +151,17 @@ export default function Auth() {
                   placeholder="Sua senha"
                   minLength={6}
                 />
+                {isLogin && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/forgot-password')}
+                      className="text-sm text-primary hover:text-primary-glow transition-colors"
+                    >
+                      Esqueceu a senha?
+                    </button>
+                  </div>
+                )}
               </div>
             </CardContent>
 
