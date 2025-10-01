@@ -193,6 +193,10 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          checkout_background_color: string | null
+          checkout_button_color: string | null
+          checkout_text_color: string | null
+          checkout_timer_enabled: boolean | null
           created_at: string
           description: string | null
           id: string
@@ -204,6 +208,10 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          checkout_background_color?: string | null
+          checkout_button_color?: string | null
+          checkout_text_color?: string | null
+          checkout_timer_enabled?: boolean | null
           created_at?: string
           description?: string | null
           id?: string
@@ -215,6 +223,10 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          checkout_background_color?: string | null
+          checkout_button_color?: string | null
+          checkout_text_color?: string | null
+          checkout_timer_enabled?: boolean | null
           created_at?: string
           description?: string | null
           id?: string

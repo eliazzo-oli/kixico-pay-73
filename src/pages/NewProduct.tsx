@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +22,12 @@ export default function NewProduct() {
     name: '',
     description: '',
     price: '',
+  });
+  const [checkoutCustomization, setCheckoutCustomization] = useState({
+    backgroundColor: '#ffffff',
+    textColor: '#000000',
+    buttonColor: '#6366f1',
+    timerEnabled: false,
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -189,6 +197,10 @@ export default function NewProduct() {
           price: price, // Price is already in AOA as integer
           image_url: imageUrl,
           active: true,
+          checkout_background_color: checkoutCustomization.backgroundColor,
+          checkout_text_color: checkoutCustomization.textColor,
+          checkout_button_color: checkoutCustomization.buttonColor,
+          checkout_timer_enabled: checkoutCustomization.timerEnabled,
         });
 
       if (error) throw error;
@@ -253,89 +265,178 @@ export default function NewProduct() {
 
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome do Produto *</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Ex: Curso de Marketing Digital"
-                  />
-                </div>
+                <Tabs defaultValue="produto" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="produto">Produto</TabsTrigger>
+                    <TabsTrigger value="checkout">Checkout</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="produto" className="space-y-6 mt-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome do Produto *</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        type="text"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Ex: Curso de Marketing Digital"
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="price">Preço (AOA) *</Label>
-                  <Input
-                    id="price"
-                    name="price"
-                    type="text"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="100.000"
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Preço (AOA) *</Label>
+                      <Input
+                        id="price"
+                        name="price"
+                        type="text"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="100.000"
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="Descreva seu produto..."
-                    rows={4}
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Descrição</Label>
+                      <Textarea
+                        id="description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        placeholder="Descreva seu produto..."
+                        rows={4}
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label>Imagem do Produto</Label>
-                  <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center">
-                    {!imagePreview ? (
-                      <div>
-                        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                        <div className="space-y-2">
+                    <div className="space-y-2">
+                      <Label>Imagem do Produto</Label>
+                      <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center">
+                        {!imagePreview ? (
+                          <div>
+                            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                            <div className="space-y-2">
+                              <p className="text-sm text-muted-foreground">
+                                Clique para selecionar uma imagem ou arraste aqui
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                PNG, JPG ou JPEG até 5MB
+                              </p>
+                            </div>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageChange}
+                              className="mt-4 cursor-pointer"
+                            />
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="max-w-full h-48 object-cover rounded-lg mx-auto"
+                              loading="lazy"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={removeImage}
+                              className="absolute top-2 right-2 p-1 h-8 w-8"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {selectedImage?.name}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="checkout" className="space-y-6 mt-6">
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-foreground">Personalização da Página de Checkout</h4>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="backgroundColor">Cor de Fundo</Label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            id="backgroundColor"
+                            type="color"
+                            value={checkoutCustomization.backgroundColor}
+                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                            className="w-20 h-10 cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={checkoutCustomization.backgroundColor}
+                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                            placeholder="#ffffff"
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="textColor">Cor do Texto</Label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            id="textColor"
+                            type="color"
+                            value={checkoutCustomization.textColor}
+                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, textColor: e.target.value }))}
+                            className="w-20 h-10 cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={checkoutCustomization.textColor}
+                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, textColor: e.target.value }))}
+                            placeholder="#000000"
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="buttonColor">Cor do Botão</Label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            id="buttonColor"
+                            type="color"
+                            value={checkoutCustomization.buttonColor}
+                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, buttonColor: e.target.value }))}
+                            className="w-20 h-10 cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={checkoutCustomization.buttonColor}
+                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, buttonColor: e.target.value }))}
+                            placeholder="#6366f1"
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="timerEnabled">Ativar Temporizador de Escassez</Label>
                           <p className="text-sm text-muted-foreground">
-                            Clique para selecionar uma imagem ou arraste aqui
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            PNG, JPG ou JPEG até 5MB
+                            Mostra uma contagem regressiva de 15 minutos no checkout
                           </p>
                         </div>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="mt-4 cursor-pointer"
+                        <Switch
+                          id="timerEnabled"
+                          checked={checkoutCustomization.timerEnabled}
+                          onCheckedChange={(checked) => setCheckoutCustomization(prev => ({ ...prev, timerEnabled: checked }))}
                         />
                       </div>
-                    ) : (
-                      <div className="relative">
-                         <img
-                           src={imagePreview}
-                           alt="Preview"
-                           className="max-w-full h-48 object-cover rounded-lg mx-auto"
-                           loading="lazy"
-                         />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={removeImage}
-                          className="absolute top-2 right-2 p-1 h-8 w-8"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          {selectedImage?.name}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
 
               <div className="p-6 pt-0">

@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatPriceFromDB } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
+import { CheckoutTimer } from '@/components/CheckoutTimer';
 
 interface Product {
   id: string;
@@ -17,6 +18,10 @@ interface Product {
   price: number;
   image_url: string;
   user_id: string;
+  checkout_background_color?: string | null;
+  checkout_text_color?: string | null;
+  checkout_button_color?: string | null;
+  checkout_timer_enabled?: boolean | null;
 }
 
 export default function Checkout() {
@@ -94,7 +99,7 @@ export default function Checkout() {
       // Buscar produto na tabela products do Supabase (sem autenticação)
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, description, price, image_url, user_id, active')
+        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled')
         .eq('id', currentProductId)
         .eq('active', true)
         .maybeSingle();
@@ -386,8 +391,17 @@ export default function Checkout() {
     );
   }
 
+  // Get customization settings from product
+  const backgroundColor = product?.checkout_background_color || '#ffffff';
+  const textColor = product?.checkout_text_color || '#000000';
+  const buttonColor = product?.checkout_button_color || '#6366f1';
+  const timerEnabled = product?.checkout_timer_enabled || false;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen"
+      style={{ backgroundColor }}
+    >
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -402,13 +416,20 @@ export default function Checkout() {
               />
             </div>
             
-            <h1 className="text-3xl font-bold text-primary">
+            <h1 className="text-3xl font-bold" style={{ color: textColor }}>
               Finalizar Compra
             </h1>
-            <p className="text-muted-foreground">
+            <p style={{ color: textColor, opacity: 0.7 }}>
               Conclua sua compra de forma segura
             </p>
           </div>
+          
+          {/* Timer de Escassez */}
+          {timerEnabled && (
+            <div className="mb-6">
+              <CheckoutTimer textColor={textColor} />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Product Details */}
@@ -612,9 +633,12 @@ export default function Checkout() {
 
                 <Button
                   onClick={handlePayment}
-                  variant="premium"
                   size="lg"
                   className="w-full h-14 text-lg font-semibold shadow-glow"
+                  style={{ 
+                    backgroundColor: buttonColor,
+                    color: '#ffffff'
+                  }}
                   disabled={!selectedPaymentMethod || isProcessing}
                 >
                   {isProcessing ? 'Processando...' : 'Pagar Agora'}

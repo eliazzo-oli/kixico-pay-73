@@ -42,6 +42,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { TrialBanner } from '@/components/TrialBanner';
 import CouponManager from '@/components/CouponManager';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Product {
   id: string;
@@ -52,6 +54,10 @@ interface Product {
   revenue: number;
   created_at: string;
   description?: string;
+  checkout_background_color?: string | null;
+  checkout_text_color?: string | null;
+  checkout_button_color?: string | null;
+  checkout_timer_enabled?: boolean | null;
 }
 
 // Interface for real Supabase product data
@@ -62,6 +68,10 @@ interface SupabaseProduct {
   active: boolean;
   created_at: string;
   description?: string;
+  checkout_background_color?: string | null;
+  checkout_text_color?: string | null;
+  checkout_button_color?: string | null;
+  checkout_timer_enabled?: boolean | null;
 }
 
 export default function DashboardProducts() {
@@ -129,7 +139,11 @@ export default function DashboardProducts() {
         sales: productStats[product.id]?.sales || 0,
         revenue: productStats[product.id]?.revenue || 0,
         created_at: product.created_at,
-        description: product.description || ''
+        description: product.description || '',
+        checkout_background_color: product.checkout_background_color,
+        checkout_text_color: product.checkout_text_color,
+        checkout_button_color: product.checkout_button_color,
+        checkout_timer_enabled: product.checkout_timer_enabled,
       }));
 
       setProducts(productsWithStats);
@@ -225,6 +239,10 @@ export default function DashboardProducts() {
       const name = formData.get('name') as string;
       const price = parseFloat(formData.get('price') as string);
       const description = formData.get('description') as string;
+      const backgroundColor = formData.get('backgroundColor') as string;
+      const textColor = formData.get('textColor') as string;
+      const buttonColor = formData.get('buttonColor') as string;
+      const timerEnabled = formData.get('timerEnabled') === 'on';
 
       if (editingProduct) {
         const { error } = await supabase
@@ -232,7 +250,11 @@ export default function DashboardProducts() {
           .update({ 
             name, 
             price,
-            description 
+            description,
+            checkout_background_color: backgroundColor,
+            checkout_text_color: textColor,
+            checkout_button_color: buttonColor,
+            checkout_timer_enabled: timerEnabled,
           })
           .eq('id', editingProduct.id)
           .eq('user_id', user?.id);
@@ -241,7 +263,16 @@ export default function DashboardProducts() {
 
         setProducts(prev => prev.map(p => 
           p.id === editingProduct.id 
-            ? { ...p, name, price: price * 100, description }
+            ? { 
+                ...p, 
+                name, 
+                price: price * 100, 
+                description,
+                checkout_background_color: backgroundColor,
+                checkout_text_color: textColor,
+                checkout_button_color: buttonColor,
+                checkout_timer_enabled: timerEnabled,
+              }
             : p
         ));
         
@@ -522,57 +553,140 @@ export default function DashboardProducts() {
                                    <Edit2 className="h-4 w-4" />
                                  </Button>
                                </DialogTrigger>
-                              <DialogContent className="sm:max-w-md">
-                                <DialogHeader>
-                                  <DialogTitle>Editar Produto</DialogTitle>
-                                  <DialogDescription>
-                                    Faça alterações nas informações do seu produto.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <form onSubmit={(e) => {
-                                  e.preventDefault();
-                                  const formData = new FormData(e.currentTarget);
-                                  handleSaveProduct(formData);
-                                }} className="space-y-4">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="name">Nome do Produto</Label>
-                                    <Input
-                                      id="name"
-                                      name="name"
-                                      defaultValue={product.name}
-                                      required
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="price">Preço (AOA)</Label>
-                                    <Input
-                                      id="price"
-                                      name="price"
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      defaultValue={(product.price / 100).toFixed(2)}
-                                      required
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label htmlFor="description">Descrição</Label>
-                                    <Input
-                                      id="description"
-                                      name="description"
-                                      defaultValue={product.description}
-                                    />
-                                  </div>
-                                  <div className="flex justify-end space-x-2">
-                                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                      Cancelar
-                                    </Button>
-                                    <Button type="submit">
-                                      Salvar Alterações
-                                    </Button>
-                                  </div>
-                                </form>
-                              </DialogContent>
+                               <DialogContent className="sm:max-w-md">
+                                 <DialogHeader>
+                                   <DialogTitle>Editar Produto</DialogTitle>
+                                   <DialogDescription>
+                                     Faça alterações nas informações do seu produto.
+                                   </DialogDescription>
+                                 </DialogHeader>
+                                 <form onSubmit={(e) => {
+                                   e.preventDefault();
+                                   const formData = new FormData(e.currentTarget);
+                                   handleSaveProduct(formData);
+                                 }} className="space-y-4">
+                                   <Tabs defaultValue="produto" className="w-full">
+                                     <TabsList className="grid w-full grid-cols-2">
+                                       <TabsTrigger value="produto">Produto</TabsTrigger>
+                                       <TabsTrigger value="checkout">Checkout</TabsTrigger>
+                                     </TabsList>
+                                     
+                                     <TabsContent value="produto" className="space-y-4 mt-4">
+                                       <div className="space-y-2">
+                                         <Label htmlFor="name">Nome do Produto</Label>
+                                         <Input
+                                           id="name"
+                                           name="name"
+                                           defaultValue={product.name}
+                                           required
+                                         />
+                                       </div>
+                                       <div className="space-y-2">
+                                         <Label htmlFor="price">Preço (AOA)</Label>
+                                         <Input
+                                           id="price"
+                                           name="price"
+                                           type="number"
+                                           min="0"
+                                           step="0.01"
+                                           defaultValue={(product.price / 100).toFixed(2)}
+                                           required
+                                         />
+                                       </div>
+                                       <div className="space-y-2">
+                                         <Label htmlFor="description">Descrição</Label>
+                                         <Textarea
+                                           id="description"
+                                           name="description"
+                                           defaultValue={product.description}
+                                           rows={3}
+                                         />
+                                       </div>
+                                     </TabsContent>
+                                     
+                                     <TabsContent value="checkout" className="space-y-4 mt-4">
+                                       <div className="space-y-2">
+                                         <Label htmlFor="backgroundColor">Cor de Fundo</Label>
+                                         <div className="flex gap-2 items-center">
+                                           <Input
+                                             id="backgroundColor"
+                                             name="backgroundColor"
+                                             type="color"
+                                             defaultValue={product.checkout_background_color || '#ffffff'}
+                                             className="w-20 h-10 cursor-pointer"
+                                           />
+                                           <Input
+                                             type="text"
+                                             value={product.checkout_background_color || '#ffffff'}
+                                             readOnly
+                                             className="flex-1 text-sm"
+                                           />
+                                         </div>
+                                       </div>
+
+                                       <div className="space-y-2">
+                                         <Label htmlFor="textColor">Cor do Texto</Label>
+                                         <div className="flex gap-2 items-center">
+                                           <Input
+                                             id="textColor"
+                                             name="textColor"
+                                             type="color"
+                                             defaultValue={product.checkout_text_color || '#000000'}
+                                             className="w-20 h-10 cursor-pointer"
+                                           />
+                                           <Input
+                                             type="text"
+                                             value={product.checkout_text_color || '#000000'}
+                                             readOnly
+                                             className="flex-1 text-sm"
+                                           />
+                                         </div>
+                                       </div>
+
+                                       <div className="space-y-2">
+                                         <Label htmlFor="buttonColor">Cor do Botão</Label>
+                                         <div className="flex gap-2 items-center">
+                                           <Input
+                                             id="buttonColor"
+                                             name="buttonColor"
+                                             type="color"
+                                             defaultValue={product.checkout_button_color || '#6366f1'}
+                                             className="w-20 h-10 cursor-pointer"
+                                           />
+                                           <Input
+                                             type="text"
+                                             value={product.checkout_button_color || '#6366f1'}
+                                             readOnly
+                                             className="flex-1 text-sm"
+                                           />
+                                         </div>
+                                       </div>
+
+                                       <div className="flex items-center justify-between">
+                                         <div className="space-y-0.5">
+                                           <Label htmlFor="timerEnabled">Ativar Temporizador de Escassez</Label>
+                                           <p className="text-sm text-muted-foreground">
+                                             Mostra uma contagem regressiva de 15 minutos
+                                           </p>
+                                         </div>
+                                         <Switch
+                                           id="timerEnabled"
+                                           name="timerEnabled"
+                                           defaultChecked={product.checkout_timer_enabled || false}
+                                         />
+                                       </div>
+                                     </TabsContent>
+                                   </Tabs>
+                                   <div className="flex justify-end space-x-2">
+                                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                                       Cancelar
+                                     </Button>
+                                     <Button type="submit">
+                                       Salvar Alterações
+                                     </Button>
+                                   </div>
+                                 </form>
+                               </DialogContent>
                             </Dialog>
 
                             <AlertDialog>
