@@ -22,6 +22,7 @@ interface Product {
   checkout_text_color?: string | null;
   checkout_button_color?: string | null;
   checkout_timer_enabled?: boolean | null;
+  accepted_payment_methods?: string[] | null;
 }
 
 export default function Checkout() {
@@ -99,7 +100,7 @@ export default function Checkout() {
       // Buscar produto na tabela products do Supabase (sem autenticação)
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled')
+        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled, accepted_payment_methods')
         .eq('id', currentProductId)
         .eq('active', true)
         .maybeSingle();
@@ -345,7 +346,7 @@ export default function Checkout() {
     }
   };
 
-  const paymentMethods = [
+  const allPaymentMethods = [
     {
       id: 'reference',
       name: 'Pagamento por Referência',
@@ -365,6 +366,11 @@ export default function Checkout() {
       description: 'PayPay África',
     },
   ];
+
+  // Filter payment methods based on product configuration
+  const paymentMethods = product?.accepted_payment_methods && product.accepted_payment_methods.length > 0
+    ? allPaymentMethods.filter(method => product.accepted_payment_methods!.includes(method.id))
+    : allPaymentMethods;
 
   if (isLoading) {
     return (

@@ -58,6 +58,7 @@ interface Product {
   checkout_text_color?: string | null;
   checkout_button_color?: string | null;
   checkout_timer_enabled?: boolean | null;
+  accepted_payment_methods?: string[] | null;
 }
 
 // Interface for real Supabase product data
@@ -72,6 +73,7 @@ interface SupabaseProduct {
   checkout_text_color?: string | null;
   checkout_button_color?: string | null;
   checkout_timer_enabled?: boolean | null;
+  accepted_payment_methods?: string[] | null;
 }
 
 export default function DashboardProducts() {
@@ -85,6 +87,7 @@ export default function DashboardProducts() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingPaymentMethods, setEditingPaymentMethods] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -144,6 +147,7 @@ export default function DashboardProducts() {
         checkout_text_color: product.checkout_text_color,
         checkout_button_color: product.checkout_button_color,
         checkout_timer_enabled: product.checkout_timer_enabled,
+        accepted_payment_methods: product.accepted_payment_methods,
       }));
 
       setProducts(productsWithStats);
@@ -205,6 +209,11 @@ export default function DashboardProducts() {
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
+    setEditingPaymentMethods(
+      product.accepted_payment_methods && product.accepted_payment_methods.length > 0 
+        ? product.accepted_payment_methods 
+        : ['reference', 'multicaixa', 'paypal_ao']
+    );
     setIsDialogOpen(true);
   };
 
@@ -255,6 +264,7 @@ export default function DashboardProducts() {
             checkout_text_color: textColor,
             checkout_button_color: buttonColor,
             checkout_timer_enabled: timerEnabled,
+            accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
           })
           .eq('id', editingProduct.id)
           .eq('user_id', user?.id);
@@ -272,6 +282,7 @@ export default function DashboardProducts() {
                 checkout_text_color: textColor,
                 checkout_button_color: buttonColor,
                 checkout_timer_enabled: timerEnabled,
+                accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
               }
             : p
         ));
@@ -565,11 +576,12 @@ export default function DashboardProducts() {
                                    const formData = new FormData(e.currentTarget);
                                    handleSaveProduct(formData);
                                  }} className="space-y-4">
-                                   <Tabs defaultValue="produto" className="w-full">
-                                     <TabsList className="grid w-full grid-cols-2">
-                                       <TabsTrigger value="produto">Produto</TabsTrigger>
-                                       <TabsTrigger value="checkout">Checkout</TabsTrigger>
-                                     </TabsList>
+                                    <Tabs defaultValue="produto" className="w-full">
+                                      <TabsList className="grid w-full grid-cols-3">
+                                        <TabsTrigger value="produto">Produto</TabsTrigger>
+                                        <TabsTrigger value="checkout">Checkout</TabsTrigger>
+                                        <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
+                                      </TabsList>
                                      
                                      <TabsContent value="produto" className="space-y-4 mt-4">
                                        <div className="space-y-2">
@@ -674,10 +686,93 @@ export default function DashboardProducts() {
                                            name="timerEnabled"
                                            defaultChecked={product.checkout_timer_enabled || false}
                                          />
-                                       </div>
-                                     </TabsContent>
-                                   </Tabs>
-                                   <div className="flex justify-end space-x-2">
+                                        </div>
+                                      </TabsContent>
+                                      
+                                      <TabsContent value="pagamentos" className="space-y-4 mt-4">
+                                        <div className="space-y-4">
+                                          <h4 className="font-medium text-foreground">Métodos de Pagamento Aceitos</h4>
+                                          <p className="text-sm text-muted-foreground">
+                                            Escolha quais métodos de pagamento deseja aceitar para este produto
+                                          </p>
+                                          
+                                          <div className="space-y-4">
+                                            <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
+                                              <div className="flex items-center gap-3">
+                                                <img 
+                                                  src="/assets/express.png" 
+                                                  alt="Pagamento por Referência" 
+                                                  className="h-10 w-auto object-contain"
+                                                />
+                                                <div>
+                                                  <p className="font-medium text-foreground">Pagamento por Referência</p>
+                                                  <p className="text-sm text-muted-foreground">Pagamento via referência bancária</p>
+                                                </div>
+                                              </div>
+                                              <Switch
+                                                checked={editingPaymentMethods.includes('reference')}
+                                                onCheckedChange={(checked) => {
+                                                  if (checked) {
+                                                    setEditingPaymentMethods(prev => [...prev, 'reference']);
+                                                  } else {
+                                                    setEditingPaymentMethods(prev => prev.filter(m => m !== 'reference'));
+                                                  }
+                                                }}
+                                              />
+                                            </div>
+
+                                            <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
+                                              <div className="flex items-center gap-3">
+                                                <img 
+                                                  src="/assets/multicaixa.png" 
+                                                  alt="Multicaixa Express" 
+                                                  className="h-10 w-auto object-contain"
+                                                />
+                                                <div>
+                                                  <p className="font-medium text-foreground">Multicaixa Express</p>
+                                                  <p className="text-sm text-muted-foreground">Pagamento via Multicaixa</p>
+                                                </div>
+                                              </div>
+                                              <Switch
+                                                checked={editingPaymentMethods.includes('multicaixa')}
+                                                onCheckedChange={(checked) => {
+                                                  if (checked) {
+                                                    setEditingPaymentMethods(prev => [...prev, 'multicaixa']);
+                                                  } else {
+                                                    setEditingPaymentMethods(prev => prev.filter(m => m !== 'multicaixa'));
+                                                  }
+                                                }}
+                                              />
+                                            </div>
+
+                                            <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
+                                              <div className="flex items-center gap-3">
+                                                <img 
+                                                  src="/assets/paypay_afri.png" 
+                                                  alt="PayPay Afri" 
+                                                  className="h-10 w-auto object-contain"
+                                                />
+                                                <div>
+                                                  <p className="font-medium text-foreground">PayPay Afri</p>
+                                                  <p className="text-sm text-muted-foreground">PayPay África</p>
+                                                </div>
+                                              </div>
+                                              <Switch
+                                                checked={editingPaymentMethods.includes('paypal_ao')}
+                                                onCheckedChange={(checked) => {
+                                                  if (checked) {
+                                                    setEditingPaymentMethods(prev => [...prev, 'paypal_ao']);
+                                                  } else {
+                                                    setEditingPaymentMethods(prev => prev.filter(m => m !== 'paypal_ao'));
+                                                  }
+                                                }}
+                                              />
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </TabsContent>
+                                    </Tabs>
+                                    <div className="flex justify-end space-x-2">
                                      <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                                        Cancelar
                                      </Button>

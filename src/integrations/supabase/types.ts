@@ -192,6 +192,7 @@ export type Database = {
       }
       products: {
         Row: {
+          accepted_payment_methods: string[] | null
           active: boolean
           checkout_background_color: string | null
           checkout_button_color: string | null
@@ -207,6 +208,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          accepted_payment_methods?: string[] | null
           active?: boolean
           checkout_background_color?: string | null
           checkout_button_color?: string | null
@@ -222,6 +224,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          accepted_payment_methods?: string[] | null
           active?: boolean
           checkout_background_color?: string | null
           checkout_button_color?: string | null

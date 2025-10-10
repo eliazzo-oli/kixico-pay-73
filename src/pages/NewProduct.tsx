@@ -29,6 +29,11 @@ export default function NewProduct() {
     buttonColor: '#6366f1',
     timerEnabled: false,
   });
+  const [acceptedPaymentMethods, setAcceptedPaymentMethods] = useState<string[]>([
+    'reference',
+    'multicaixa',
+    'paypal_ao',
+  ]);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -201,6 +206,7 @@ export default function NewProduct() {
           checkout_text_color: checkoutCustomization.textColor,
           checkout_button_color: checkoutCustomization.buttonColor,
           checkout_timer_enabled: checkoutCustomization.timerEnabled,
+          accepted_payment_methods: acceptedPaymentMethods.length > 0 ? acceptedPaymentMethods : null,
         });
 
       if (error) throw error;
@@ -266,9 +272,10 @@ export default function NewProduct() {
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-6">
                 <Tabs defaultValue="produto" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="produto">Produto</TabsTrigger>
                     <TabsTrigger value="checkout">Checkout</TabsTrigger>
+                    <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="produto" className="space-y-6 mt-6">
@@ -433,6 +440,89 @@ export default function NewProduct() {
                           checked={checkoutCustomization.timerEnabled}
                           onCheckedChange={(checked) => setCheckoutCustomization(prev => ({ ...prev, timerEnabled: checked }))}
                         />
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="pagamentos" className="space-y-6 mt-6">
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-foreground">Métodos de Pagamento Aceitos</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Escolha quais métodos de pagamento deseja aceitar para este produto
+                      </p>
+                      
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src="/assets/express.png" 
+                              alt="Pagamento por Referência" 
+                              className="h-10 w-auto object-contain"
+                            />
+                            <div>
+                              <p className="font-medium text-foreground">Pagamento por Referência</p>
+                              <p className="text-sm text-muted-foreground">Pagamento via referência bancária</p>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={acceptedPaymentMethods.includes('reference')}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setAcceptedPaymentMethods(prev => [...prev, 'reference']);
+                              } else {
+                                setAcceptedPaymentMethods(prev => prev.filter(m => m !== 'reference'));
+                              }
+                            }}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src="/assets/multicaixa.png" 
+                              alt="Multicaixa Express" 
+                              className="h-10 w-auto object-contain"
+                            />
+                            <div>
+                              <p className="font-medium text-foreground">Multicaixa Express</p>
+                              <p className="text-sm text-muted-foreground">Pagamento via Multicaixa</p>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={acceptedPaymentMethods.includes('multicaixa')}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setAcceptedPaymentMethods(prev => [...prev, 'multicaixa']);
+                              } else {
+                                setAcceptedPaymentMethods(prev => prev.filter(m => m !== 'multicaixa'));
+                              }
+                            }}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src="/assets/paypay_afri.png" 
+                              alt="PayPay Afri" 
+                              className="h-10 w-auto object-contain"
+                            />
+                            <div>
+                              <p className="font-medium text-foreground">PayPay Afri</p>
+                              <p className="text-sm text-muted-foreground">PayPay África</p>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={acceptedPaymentMethods.includes('paypal_ao')}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setAcceptedPaymentMethods(prev => [...prev, 'paypal_ao']);
+                              } else {
+                                setAcceptedPaymentMethods(prev => prev.filter(m => m !== 'paypal_ao'));
+                              }
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </TabsContent>
