@@ -88,6 +88,16 @@ export default function DashboardProducts() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [editingPaymentMethods, setEditingPaymentMethods] = useState<string[]>([]);
+  
+  // Controlled form states
+  const [editName, setEditName] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editBackgroundColor, setEditBackgroundColor] = useState('#ffffff');
+  const [editTextColor, setEditTextColor] = useState('#000000');
+  const [editButtonColor, setEditButtonColor] = useState('#6366f1');
+  const [editTimerEnabled, setEditTimerEnabled] = useState(false);
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -209,6 +219,13 @@ export default function DashboardProducts() {
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
+    setEditName(product.name);
+    setEditPrice((product.price / 100).toString());
+    setEditDescription(product.description || '');
+    setEditBackgroundColor(product.checkout_background_color || '#ffffff');
+    setEditTextColor(product.checkout_text_color || '#000000');
+    setEditButtonColor(product.checkout_button_color || '#6366f1');
+    setEditTimerEnabled(product.checkout_timer_enabled || false);
     setEditingPaymentMethods(
       product.accepted_payment_methods && product.accepted_payment_methods.length > 0 
         ? product.accepted_payment_methods 
@@ -243,55 +260,57 @@ export default function DashboardProducts() {
     }
   };
 
-  const handleSaveProduct = async (formData: FormData) => {
+  const handleSaveProduct = async () => {
     try {
-      const name = formData.get('name') as string;
-      const price = parseFloat(formData.get('price') as string);
-      const description = formData.get('description') as string;
-      const backgroundColor = formData.get('backgroundColor') as string;
-      const textColor = formData.get('textColor') as string;
-      const buttonColor = formData.get('buttonColor') as string;
-      const timerEnabled = formData.get('timerEnabled') === 'on';
+      if (!editingProduct) return;
 
-      if (editingProduct) {
-        const { error } = await supabase
-          .from('products')
-          .update({ 
-            name, 
-            price,
-            description,
-            checkout_background_color: backgroundColor,
-            checkout_text_color: textColor,
-            checkout_button_color: buttonColor,
-            checkout_timer_enabled: timerEnabled,
-            accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
-          })
-          .eq('id', editingProduct.id)
-          .eq('user_id', user?.id);
-
-        if (error) throw error;
-
-        setProducts(prev => prev.map(p => 
-          p.id === editingProduct.id 
-            ? { 
-                ...p, 
-                name, 
-                price: price * 100, 
-                description,
-                checkout_background_color: backgroundColor,
-                checkout_text_color: textColor,
-                checkout_button_color: buttonColor,
-                checkout_timer_enabled: timerEnabled,
-                accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
-              }
-            : p
-        ));
-        
+      const price = parseFloat(editPrice);
+      if (isNaN(price)) {
         toast({
-          title: "Produto atualizado",
-          description: "As alterações foram salvas com sucesso.",
+          title: "Erro",
+          description: "Preço inválido.",
+          variant: 'destructive',
         });
+        return;
       }
+
+      const { error } = await supabase
+        .from('products')
+        .update({ 
+          name: editName, 
+          price,
+          description: editDescription,
+          checkout_background_color: editBackgroundColor,
+          checkout_text_color: editTextColor,
+          checkout_button_color: editButtonColor,
+          checkout_timer_enabled: editTimerEnabled,
+          accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
+        })
+        .eq('id', editingProduct.id)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setProducts(prev => prev.map(p => 
+        p.id === editingProduct.id 
+          ? { 
+              ...p, 
+              name: editName, 
+              price: price * 100, 
+              description: editDescription,
+              checkout_background_color: editBackgroundColor,
+              checkout_text_color: editTextColor,
+              checkout_button_color: editButtonColor,
+              checkout_timer_enabled: editTimerEnabled,
+              accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
+            }
+          : p
+      ));
+      
+      toast({
+        title: "Produto atualizado",
+        description: "As alterações foram salvas com sucesso.",
+      });
       
       setIsDialogOpen(false);
       setEditingProduct(null);
@@ -571,123 +590,119 @@ export default function DashboardProducts() {
                                      Faça alterações nas informações do seu produto.
                                    </DialogDescription>
                                  </DialogHeader>
-                                 <form onSubmit={(e) => {
-                                   e.preventDefault();
-                                   const formData = new FormData(e.currentTarget);
-                                   handleSaveProduct(formData);
-                                 }} className="space-y-4">
-                                    <Tabs defaultValue="produto" className="w-full">
-                                      <TabsList className="grid w-full grid-cols-3">
-                                        <TabsTrigger value="produto">Produto</TabsTrigger>
-                                        <TabsTrigger value="checkout">Checkout</TabsTrigger>
-                                        <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
-                                      </TabsList>
-                                     
-                                     <TabsContent value="produto" className="space-y-4 mt-4">
-                                       <div className="space-y-2">
-                                         <Label htmlFor="name">Nome do Produto</Label>
-                                         <Input
-                                           id="name"
-                                           name="name"
-                                           defaultValue={product.name}
-                                           required
-                                         />
-                                       </div>
-                                       <div className="space-y-2">
-                                         <Label htmlFor="price">Preço (AOA)</Label>
-                                         <Input
-                                           id="price"
-                                           name="price"
-                                           type="number"
-                                           min="0"
-                                           step="0.01"
-                                           defaultValue={(product.price / 100).toFixed(2)}
-                                           required
-                                         />
-                                       </div>
-                                       <div className="space-y-2">
-                                         <Label htmlFor="description">Descrição</Label>
-                                         <Textarea
-                                           id="description"
-                                           name="description"
-                                           defaultValue={product.description}
-                                           rows={3}
-                                         />
-                                       </div>
-                                     </TabsContent>
-                                     
-                                     <TabsContent value="checkout" className="space-y-4 mt-4">
-                                       <div className="space-y-2">
-                                         <Label htmlFor="backgroundColor">Cor de Fundo</Label>
-                                         <div className="flex gap-2 items-center">
-                                           <Input
-                                             id="backgroundColor"
-                                             name="backgroundColor"
-                                             type="color"
-                                             defaultValue={product.checkout_background_color || '#ffffff'}
-                                             className="w-20 h-10 cursor-pointer"
-                                           />
-                                           <Input
-                                             type="text"
-                                             value={product.checkout_background_color || '#ffffff'}
-                                             readOnly
-                                             className="flex-1 text-sm"
-                                           />
-                                         </div>
-                                       </div>
-
-                                       <div className="space-y-2">
-                                         <Label htmlFor="textColor">Cor do Texto</Label>
-                                         <div className="flex gap-2 items-center">
-                                           <Input
-                                             id="textColor"
-                                             name="textColor"
-                                             type="color"
-                                             defaultValue={product.checkout_text_color || '#000000'}
-                                             className="w-20 h-10 cursor-pointer"
-                                           />
-                                           <Input
-                                             type="text"
-                                             value={product.checkout_text_color || '#000000'}
-                                             readOnly
-                                             className="flex-1 text-sm"
-                                           />
-                                         </div>
-                                       </div>
-
-                                       <div className="space-y-2">
-                                         <Label htmlFor="buttonColor">Cor do Botão</Label>
-                                         <div className="flex gap-2 items-center">
-                                           <Input
-                                             id="buttonColor"
-                                             name="buttonColor"
-                                             type="color"
-                                             defaultValue={product.checkout_button_color || '#6366f1'}
-                                             className="w-20 h-10 cursor-pointer"
-                                           />
-                                           <Input
-                                             type="text"
-                                             value={product.checkout_button_color || '#6366f1'}
-                                             readOnly
-                                             className="flex-1 text-sm"
-                                           />
-                                         </div>
-                                       </div>
-
-                                       <div className="flex items-center justify-between">
-                                         <div className="space-y-0.5">
-                                           <Label htmlFor="timerEnabled">Ativar Temporizador de Escassez</Label>
-                                           <p className="text-sm text-muted-foreground">
-                                             Mostra uma contagem regressiva de 15 minutos
-                                           </p>
-                                         </div>
-                                         <Switch
-                                           id="timerEnabled"
-                                           name="timerEnabled"
-                                           defaultChecked={product.checkout_timer_enabled || false}
-                                         />
+                                  <div className="space-y-4">
+                                     <Tabs defaultValue="produto" className="w-full">
+                                       <TabsList className="grid w-full grid-cols-3">
+                                         <TabsTrigger value="produto">Produto</TabsTrigger>
+                                         <TabsTrigger value="checkout">Checkout</TabsTrigger>
+                                         <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
+                                       </TabsList>
+                                      
+                                      <TabsContent value="produto" className="space-y-4 mt-4">
+                                        <div className="space-y-2">
+                                          <Label htmlFor="name">Nome do Produto</Label>
+                                          <Input
+                                            id="name"
+                                            value={editName}
+                                            onChange={(e) => setEditName(e.target.value)}
+                                            required
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label htmlFor="price">Preço (AOA)</Label>
+                                          <Input
+                                            id="price"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={editPrice}
+                                            onChange={(e) => setEditPrice(e.target.value)}
+                                            required
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label htmlFor="description">Descrição</Label>
+                                          <Textarea
+                                            id="description"
+                                            value={editDescription}
+                                            onChange={(e) => setEditDescription(e.target.value)}
+                                            rows={3}
+                                          />
                                         </div>
                                       </TabsContent>
+                                     
+                                      <TabsContent value="checkout" className="space-y-4 mt-4">
+                                        <div className="space-y-2">
+                                          <Label htmlFor="backgroundColor">Cor de Fundo</Label>
+                                          <div className="flex gap-2 items-center">
+                                            <Input
+                                              id="backgroundColor"
+                                              type="color"
+                                              value={editBackgroundColor}
+                                              onChange={(e) => setEditBackgroundColor(e.target.value)}
+                                              className="w-20 h-10 cursor-pointer"
+                                            />
+                                            <Input
+                                              type="text"
+                                              value={editBackgroundColor}
+                                              readOnly
+                                              className="flex-1 text-sm"
+                                            />
+                                          </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          <Label htmlFor="textColor">Cor do Texto</Label>
+                                          <div className="flex gap-2 items-center">
+                                            <Input
+                                              id="textColor"
+                                              type="color"
+                                              value={editTextColor}
+                                              onChange={(e) => setEditTextColor(e.target.value)}
+                                              className="w-20 h-10 cursor-pointer"
+                                            />
+                                            <Input
+                                              type="text"
+                                              value={editTextColor}
+                                              readOnly
+                                              className="flex-1 text-sm"
+                                            />
+                                          </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          <Label htmlFor="buttonColor">Cor do Botão</Label>
+                                          <div className="flex gap-2 items-center">
+                                            <Input
+                                              id="buttonColor"
+                                              type="color"
+                                              value={editButtonColor}
+                                              onChange={(e) => setEditButtonColor(e.target.value)}
+                                              className="w-20 h-10 cursor-pointer"
+                                            />
+                                            <Input
+                                              type="text"
+                                              value={editButtonColor}
+                                              readOnly
+                                              className="flex-1 text-sm"
+                                            />
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                          <div className="space-y-0.5">
+                                            <Label htmlFor="timerEnabled">Ativar Temporizador de Escassez</Label>
+                                            <p className="text-sm text-muted-foreground">
+                                              Mostra uma contagem regressiva de 15 minutos
+                                            </p>
+                                          </div>
+                                          <Switch
+                                            id="timerEnabled"
+                                            checked={editTimerEnabled}
+                                            onCheckedChange={setEditTimerEnabled}
+                                          />
+                                         </div>
+                                       </TabsContent>
                                       
                                       <TabsContent value="pagamentos" className="space-y-4 mt-4">
                                         <div className="space-y-4">
@@ -770,17 +785,17 @@ export default function DashboardProducts() {
                                             </div>
                                           </div>
                                         </div>
-                                      </TabsContent>
-                                    </Tabs>
-                                    <div className="flex justify-end space-x-2">
-                                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                       Cancelar
-                                     </Button>
-                                     <Button type="submit">
-                                       Salvar Alterações
-                                     </Button>
-                                   </div>
-                                 </form>
+                                       </TabsContent>
+                                     </Tabs>
+                                     <div className="flex justify-end space-x-2 mt-6">
+                                      <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                                        Cancelar
+                                      </Button>
+                                      <Button onClick={handleSaveProduct}>
+                                        Salvar Alterações
+                                      </Button>
+                                    </div>
+                                  </div>
                                </DialogContent>
                             </Dialog>
 
