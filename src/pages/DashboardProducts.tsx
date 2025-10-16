@@ -58,6 +58,7 @@ interface Product {
   checkout_text_color?: string | null;
   checkout_button_color?: string | null;
   checkout_timer_enabled?: boolean | null;
+  checkout_show_kixicopay_logo?: boolean | null;
   accepted_payment_methods?: string[] | null;
 }
 
@@ -73,6 +74,7 @@ interface SupabaseProduct {
   checkout_text_color?: string | null;
   checkout_button_color?: string | null;
   checkout_timer_enabled?: boolean | null;
+  checkout_show_kixicopay_logo?: boolean | null;
   accepted_payment_methods?: string[] | null;
 }
 
@@ -97,6 +99,7 @@ export default function DashboardProducts() {
   const [editTextColor, setEditTextColor] = useState('#000000');
   const [editButtonColor, setEditButtonColor] = useState('#6366f1');
   const [editTimerEnabled, setEditTimerEnabled] = useState(false);
+  const [editShowKixicoPayLogo, setEditShowKixicoPayLogo] = useState(true);
   
   const { toast } = useToast();
 
@@ -157,6 +160,7 @@ export default function DashboardProducts() {
         checkout_text_color: product.checkout_text_color,
         checkout_button_color: product.checkout_button_color,
         checkout_timer_enabled: product.checkout_timer_enabled,
+        checkout_show_kixicopay_logo: product.checkout_show_kixicopay_logo,
         accepted_payment_methods: product.accepted_payment_methods,
       }));
 
@@ -226,6 +230,7 @@ export default function DashboardProducts() {
     setEditTextColor(product.checkout_text_color || '#000000');
     setEditButtonColor(product.checkout_button_color || '#6366f1');
     setEditTimerEnabled(product.checkout_timer_enabled || false);
+    setEditShowKixicoPayLogo(product.checkout_show_kixicopay_logo !== false);
     setEditingPaymentMethods(
       product.accepted_payment_methods && product.accepted_payment_methods.length > 0 
         ? product.accepted_payment_methods 
@@ -284,6 +289,7 @@ export default function DashboardProducts() {
           checkout_text_color: editTextColor,
           checkout_button_color: editButtonColor,
           checkout_timer_enabled: editTimerEnabled,
+          checkout_show_kixicopay_logo: editShowKixicoPayLogo,
           accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
         })
         .eq('id', editingProduct.id)
@@ -302,6 +308,7 @@ export default function DashboardProducts() {
               checkout_text_color: editTextColor,
               checkout_button_color: editButtonColor,
               checkout_timer_enabled: editTimerEnabled,
+              checkout_show_kixicopay_logo: editShowKixicoPayLogo,
               accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
             }
           : p
@@ -701,7 +708,21 @@ export default function DashboardProducts() {
                                             checked={editTimerEnabled}
                                             onCheckedChange={setEditTimerEnabled}
                                           />
-                                         </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                          <div className="space-y-0.5">
+                                            <Label htmlFor="showKixicoPayLogo">Mostrar logotipo da KixicoPay no checkout</Label>
+                                            <p className="text-sm text-muted-foreground">
+                                              Exibir ou ocultar o logotipo da KixicoPay
+                                            </p>
+                                          </div>
+                                          <Switch
+                                            id="showKixicoPayLogo"
+                                            checked={editShowKixicoPayLogo}
+                                            onCheckedChange={setEditShowKixicoPayLogo}
+                                          />
+                                        </div>
                                        </TabsContent>
                                       
                                       <TabsContent value="pagamentos" className="space-y-4 mt-4">

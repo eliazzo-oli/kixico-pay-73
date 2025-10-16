@@ -22,6 +22,7 @@ interface Product {
   checkout_text_color?: string | null;
   checkout_button_color?: string | null;
   checkout_timer_enabled?: boolean | null;
+  checkout_show_kixicopay_logo?: boolean | null;
   accepted_payment_methods?: string[] | null;
 }
 
@@ -100,7 +101,7 @@ export default function Checkout() {
       // Buscar produto na tabela products do Supabase (sem autenticação)
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled, accepted_payment_methods')
+        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled, checkout_show_kixicopay_logo, accepted_payment_methods')
         .eq('id', currentProductId)
         .eq('active', true)
         .maybeSingle();
@@ -402,6 +403,7 @@ export default function Checkout() {
   const textColor = product?.checkout_text_color || '#000000';
   const buttonColor = product?.checkout_button_color || '#6366f1';
   const timerEnabled = product?.checkout_timer_enabled || false;
+  const showKixicoPayLogo = product?.checkout_show_kixicopay_logo !== false;
 
   return (
     <div 
@@ -412,15 +414,17 @@ export default function Checkout() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             {/* Logo KixicoPay */}
-            <div className="mb-6">
-              <img 
-                src="/lovable-uploads/22ff7c61-cfa1-40d4-a028-a25cba4d4616.png" 
-                alt="KixicoPay Logo" 
-                className="mx-auto h-[240px] w-auto object-contain logo-animated optimized-image"
-                loading="eager"
-                decoding="async"
-              />
-            </div>
+            {showKixicoPayLogo && (
+              <div className="mb-6">
+                <img 
+                  src="/lovable-uploads/22ff7c61-cfa1-40d4-a028-a25cba4d4616.png" 
+                  alt="KixicoPay Logo" 
+                  className="mx-auto h-[240px] w-auto object-contain logo-animated optimized-image"
+                  loading="eager"
+                  decoding="async"
+                />
+              </div>
+            )}
             
             <h1 className="text-3xl font-bold" style={{ color: textColor }}>
               Finalizar Compra
@@ -550,28 +554,39 @@ export default function Checkout() {
                 <div className="space-y-4">
                   <h4 className="font-medium text-foreground">Método de Pagamento</h4>
                   
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     {paymentMethods.map((method) => (
                       <div
                         key={method.id}
-                        className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 text-center ${
+                        className={`border rounded-xl p-6 cursor-pointer transition-all duration-300 ${
                           selectedPaymentMethod === method.id
-                            ? 'border-primary bg-primary/10 shadow-md'
-                            : 'border-border/50 hover:border-primary/50 hover:shadow-sm'
+                            ? 'border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20'
+                            : 'border-border/50 hover:border-primary/50 hover:shadow-md hover:scale-105'
                         }`}
                         onClick={() => setSelectedPaymentMethod(method.id)}
                       >
-                        <div className="flex flex-col items-center gap-3">
-                          <img 
-                            src={method.logo} 
-                            alt={method.name}
-                            className="h-12 w-auto object-contain"
-                          />
-                          <h5 className="font-medium text-foreground text-sm">
-                            {method.name}
-                          </h5>
+                        <div className="flex items-center gap-4">
+                          <div className="flex-shrink-0">
+                            <img 
+                              src={method.logo} 
+                              alt={method.name}
+                              className="h-16 w-auto object-contain"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h5 className="font-medium text-foreground text-lg">
+                              {method.name}
+                            </h5>
+                            <p className="text-muted-foreground text-sm mt-1">
+                              {method.description}
+                            </p>
+                          </div>
                           {selectedPaymentMethod === method.id && (
-                            <Badge variant="default" className="mt-1">Selecionado</Badge>
+                            <div className="flex-shrink-0">
+                              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              </div>
+                            </div>
                           )}
                         </div>
                       </div>

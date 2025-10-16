@@ -196,6 +196,7 @@ export type Database = {
           active: boolean
           checkout_background_color: string | null
           checkout_button_color: string | null
+          checkout_show_kixicopay_logo: boolean
           checkout_text_color: string | null
           checkout_timer_enabled: boolean | null
           created_at: string
@@ -212,6 +213,7 @@ export type Database = {
           active?: boolean
           checkout_background_color?: string | null
           checkout_button_color?: string | null
+          checkout_show_kixicopay_logo?: boolean
           checkout_text_color?: string | null
           checkout_timer_enabled?: boolean | null
           created_at?: string
@@ -228,6 +230,7 @@ export type Database = {
           active?: boolean
           checkout_background_color?: string | null
           checkout_button_color?: string | null
+          checkout_show_kixicopay_logo?: boolean
           checkout_text_color?: string | null
           checkout_timer_enabled?: boolean | null
           created_at?: string
