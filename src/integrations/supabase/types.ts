@@ -204,6 +204,10 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          order_bump_enabled: boolean | null
+          order_bump_headline: string | null
+          order_bump_price: number | null
+          order_bump_product_id: string | null
           pixel_id: string | null
           price: number
           updated_at: string
@@ -222,6 +226,10 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          order_bump_enabled?: boolean | null
+          order_bump_headline?: string | null
+          order_bump_price?: number | null
+          order_bump_product_id?: string | null
           pixel_id?: string | null
           price: number
           updated_at?: string
@@ -240,12 +248,24 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          order_bump_enabled?: boolean | null
+          order_bump_headline?: string | null
+          order_bump_price?: number | null
+          order_bump_product_id?: string | null
           pixel_id?: string | null
           price?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_order_bump_product_id_fkey"
+            columns: ["order_bump_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

@@ -26,6 +26,10 @@ interface Product {
   checkout_show_kixicopay_logo?: boolean | null;
   accepted_payment_methods?: string[] | null;
   pixel_id?: string | null;
+  order_bump_enabled?: boolean | null;
+  order_bump_product_id?: string | null;
+  order_bump_price?: number | null;
+  order_bump_headline?: string | null;
 }
 
 export default function Checkout() {
@@ -56,6 +60,10 @@ export default function Checkout() {
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   
+  // Order Bump states
+  const [orderBumpAccepted, setOrderBumpAccepted] = useState(false);
+  const [orderBumpProduct, setOrderBumpProduct] = useState<{ name: string; description: string } | null>(null);
+  
   // Coupon states
   const [showCouponField, setShowCouponField] = useState(false);
   const [couponCode, setCouponCode] = useState('');
@@ -75,6 +83,29 @@ export default function Checkout() {
   useEffect(() => {
     fetchProduct();
   }, [productId, queryProductId]);
+
+  useEffect(() => {
+    if (product?.order_bump_enabled && product?.order_bump_product_id) {
+      fetchOrderBumpProduct();
+    }
+  }, [product?.order_bump_product_id]);
+
+  const fetchOrderBumpProduct = async () => {
+    if (!product?.order_bump_product_id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('name, description')
+        .eq('id', product.order_bump_product_id)
+        .single();
+
+      if (error) throw error;
+      setOrderBumpProduct(data);
+    } catch (error) {
+      console.error('Error fetching order bump product:', error);
+    }
+  };
 
   const fetchProduct = async () => {
     try {
@@ -162,6 +193,14 @@ export default function Checkout() {
     }
   };
 
+  const calculateTotalPrice = () => {
+    let total = calculateDiscountedPrice(product?.price || 0);
+    if (orderBumpAccepted && product?.order_bump_price) {
+      total += product.order_bump_price * 100; // Convert to cents
+    }
+    return total;
+  };
+
   const handleApplyCoupon = async () => {
     if (!couponCode.trim() || !product) return;
     
@@ -240,7 +279,7 @@ export default function Checkout() {
           user_id: product.user_id,
           customer_email: customerData.email,
           customer_name: customerData.name,
-          amount: calculateDiscountedPrice(product.price),
+          amount: calculateTotalPrice(),
           status: selectedPaymentMethod === 'reference' ? 'pending' : 'pending',
           payment_method: selectedPaymentMethod,
           payment_link: `${window.location.origin}/checkout/${product.id}`,
@@ -249,6 +288,26 @@ export default function Checkout() {
         .single();
 
       if (error) throw error;
+
+      // If order bump was accepted, create a separate transaction for it
+      if (orderBumpAccepted && product.order_bump_product_id && product.order_bump_price) {
+        const { error: orderBumpError } = await supabase
+          .from('transactions')
+          .insert({
+            product_id: product.order_bump_product_id,
+            user_id: product.user_id,
+            customer_email: customerData.email,
+            customer_name: customerData.name,
+            amount: product.order_bump_price * 100, // Convert to cents
+            status: selectedPaymentMethod === 'reference' ? 'pending' : 'pending',
+            payment_method: selectedPaymentMethod,
+            payment_link: `${window.location.origin}/checkout/${product.id}`,
+          });
+
+        if (orderBumpError) {
+          console.error('Error creating order bump transaction:', orderBumpError);
+        }
+      }
 
       // Se for pagamento por referência, redirecionar para página de detalhes
       if (selectedPaymentMethod === 'reference') {
@@ -283,7 +342,7 @@ export default function Checkout() {
 
       // Track purchase with pixel
       trackPurchase({
-        value: calculateDiscountedPrice(product.price) / 100,
+        value: calculateTotalPrice() / 100,
         currency: 'AOA',
       });
 
@@ -504,8 +563,8 @@ export default function Checkout() {
                     <span className="text-lg font-medium text-foreground">Total:</span>
                     <span className="text-2xl font-bold text-primary">
                       {planData ? 
-                        `${formatPriceFromDB(calculateDiscountedPrice(product.price))}/mês` :
-                        formatPriceFromDB(calculateDiscountedPrice(product.price))}
+                        `${formatPriceFromDB(calculateTotalPrice())}/mês` :
+                        formatPriceFromDB(calculateTotalPrice())}
                     </span>
                   </div>
                 </div>
@@ -665,6 +724,47 @@ export default function Checkout() {
                     </div>
                   )}
                 </div>
+
+                {/* Order Bump Section */}
+                {product?.order_bump_enabled && 
+                 product?.order_bump_product_id && 
+                 product?.order_bump_price && 
+                 orderBumpProduct && (
+                  <div className="space-y-4">
+                    <div 
+                      className="border-2 border-dashed border-primary/30 rounded-lg p-6 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer"
+                      onClick={() => setOrderBumpAccepted(!orderBumpAccepted)}
+                    >
+                      <div className="flex items-start gap-4">
+                        <input
+                          type="checkbox"
+                          checked={orderBumpAccepted}
+                          onChange={(e) => setOrderBumpAccepted(e.target.checked)}
+                          className="mt-1 h-5 w-5 rounded border-primary text-primary focus:ring-primary cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground text-lg mb-2">
+                            {product.order_bump_headline || '🎁 Oferta Especial!'}
+                          </h4>
+                          <p className="text-foreground mb-3">
+                            <strong>{orderBumpProduct.name}</strong>
+                          </p>
+                          <p className="text-muted-foreground text-sm mb-3">
+                            {orderBumpProduct.description}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl font-bold text-primary">
+                              {formatPriceFromDB(product.order_bump_price * 100)}
+                            </span>
+                            <Badge variant="secondary" className="bg-green-100 text-green-700">
+                              Preço Especial
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <Button
                   onClick={handlePayment}

@@ -61,6 +61,10 @@ interface Product {
   checkout_show_kixicopay_logo?: boolean | null;
   accepted_payment_methods?: string[] | null;
   pixel_id?: string | null;
+  order_bump_enabled?: boolean | null;
+  order_bump_product_id?: string | null;
+  order_bump_price?: number | null;
+  order_bump_headline?: string | null;
 }
 
 // Interface for real Supabase product data
@@ -78,6 +82,10 @@ interface SupabaseProduct {
   checkout_show_kixicopay_logo?: boolean | null;
   accepted_payment_methods?: string[] | null;
   pixel_id?: string | null;
+  order_bump_enabled?: boolean | null;
+  order_bump_product_id?: string | null;
+  order_bump_price?: number | null;
+  order_bump_headline?: string | null;
 }
 
 export default function DashboardProducts() {
@@ -103,6 +111,12 @@ export default function DashboardProducts() {
   const [editPixelId, setEditPixelId] = useState('');
   const [editTimerEnabled, setEditTimerEnabled] = useState(false);
   const [editShowKixicoPayLogo, setEditShowKixicoPayLogo] = useState(true);
+  
+  // Order Bump states
+  const [editOrderBumpEnabled, setEditOrderBumpEnabled] = useState(false);
+  const [editOrderBumpProductId, setEditOrderBumpProductId] = useState('');
+  const [editOrderBumpPrice, setEditOrderBumpPrice] = useState('');
+  const [editOrderBumpHeadline, setEditOrderBumpHeadline] = useState('');
   
   const { toast } = useToast();
 
@@ -165,6 +179,11 @@ export default function DashboardProducts() {
         checkout_timer_enabled: product.checkout_timer_enabled,
         checkout_show_kixicopay_logo: product.checkout_show_kixicopay_logo,
         accepted_payment_methods: product.accepted_payment_methods,
+        pixel_id: product.pixel_id,
+        order_bump_enabled: product.order_bump_enabled,
+        order_bump_product_id: product.order_bump_product_id,
+        order_bump_price: product.order_bump_price,
+        order_bump_headline: product.order_bump_headline,
       }));
 
       setProducts(productsWithStats);
@@ -240,6 +259,10 @@ export default function DashboardProducts() {
         ? product.accepted_payment_methods 
         : ['reference', 'multicaixa', 'paypal_ao']
     );
+    setEditOrderBumpEnabled(product.order_bump_enabled || false);
+    setEditOrderBumpProductId(product.order_bump_product_id || '');
+    setEditOrderBumpPrice(product.order_bump_price ? (product.order_bump_price / 100).toString() : '');
+    setEditOrderBumpHeadline(product.order_bump_headline || '');
     setIsDialogOpen(true);
   };
 
@@ -283,6 +306,16 @@ export default function DashboardProducts() {
         return;
       }
 
+      const orderBumpPrice = editOrderBumpPrice ? parseFloat(editOrderBumpPrice) : null;
+      if (editOrderBumpEnabled && editOrderBumpPrice && isNaN(orderBumpPrice!)) {
+        toast({
+          title: "Erro",
+          description: "Preço do Order Bump inválido.",
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('products')
         .update({ 
@@ -296,6 +329,10 @@ export default function DashboardProducts() {
           checkout_show_kixicopay_logo: editShowKixicoPayLogo,
           accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
           pixel_id: editPixelId || null,
+          order_bump_enabled: editOrderBumpEnabled,
+          order_bump_product_id: editOrderBumpEnabled && editOrderBumpProductId ? editOrderBumpProductId : null,
+          order_bump_price: editOrderBumpEnabled && orderBumpPrice ? orderBumpPrice : null,
+          order_bump_headline: editOrderBumpEnabled && editOrderBumpHeadline ? editOrderBumpHeadline : null,
         })
         .eq('id', editingProduct.id)
         .eq('user_id', user?.id);
@@ -816,24 +853,99 @@ export default function DashboardProducts() {
                                        </TabsContent>
                                        
                                        <TabsContent value="marketing" className="space-y-4 mt-4">
-                                         <div className="space-y-4">
-                                           <h4 className="font-medium text-foreground">Rastreamento de Anúncios</h4>
-                                           <p className="text-sm text-muted-foreground">
-                                             Configure o rastreamento de conversões para otimizar os seus anúncios
-                                           </p>
-                                           
-                                           <div className="space-y-2">
-                                             <Label htmlFor="pixelId">Pixel ID</Label>
-                                             <Input
-                                               id="pixelId"
-                                               type="text"
-                                               value={editPixelId}
-                                               onChange={(e) => setEditPixelId(e.target.value)}
-                                               placeholder="Ex: 1234567890"
-                                             />
-                                             <p className="text-xs text-muted-foreground">
-                                               Insira aqui o seu Pixel ID do Facebook, TikTok ou outra plataforma de anúncios para rastrear as suas vendas.
+                                         <div className="space-y-6">
+                                           {/* Pixel Tracking Section */}
+                                           <div className="space-y-4">
+                                             <h4 className="font-medium text-foreground">Rastreamento de Anúncios</h4>
+                                             <p className="text-sm text-muted-foreground">
+                                               Configure o rastreamento de conversões para otimizar os seus anúncios
                                              </p>
+                                             
+                                             <div className="space-y-2">
+                                               <Label htmlFor="pixelId">Pixel ID</Label>
+                                               <Input
+                                                 id="pixelId"
+                                                 type="text"
+                                                 value={editPixelId}
+                                                 onChange={(e) => setEditPixelId(e.target.value)}
+                                                 placeholder="Ex: 1234567890"
+                                               />
+                                               <p className="text-xs text-muted-foreground">
+                                                 Insira aqui o seu Pixel ID do Facebook, TikTok ou outra plataforma de anúncios para rastrear as suas vendas.
+                                               </p>
+                                             </div>
+                                           </div>
+
+                                           {/* Order Bump Section */}
+                                           <div className="space-y-4 pt-4 border-t border-border/50">
+                                             <div className="flex items-center justify-between">
+                                               <div className="space-y-0.5">
+                                                 <h4 className="font-medium text-foreground">Order Bump</h4>
+                                                 <p className="text-sm text-muted-foreground">
+                                                   Ofereça um produto adicional no checkout para aumentar o valor médio das vendas
+                                                 </p>
+                                               </div>
+                                               <Switch
+                                                 checked={editOrderBumpEnabled}
+                                                 onCheckedChange={setEditOrderBumpEnabled}
+                                               />
+                                             </div>
+
+                                             {editOrderBumpEnabled && (
+                                               <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                                                 <div className="space-y-2">
+                                                   <Label htmlFor="orderBumpProduct">Produto do Order Bump</Label>
+                                                   <select
+                                                     id="orderBumpProduct"
+                                                     value={editOrderBumpProductId}
+                                                     onChange={(e) => setEditOrderBumpProductId(e.target.value)}
+                                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                                   >
+                                                     <option value="">Selecione um produto</option>
+                                                     {products
+                                                       .filter(p => p.id !== editingProduct?.id && p.status === 'active')
+                                                       .map(p => (
+                                                         <option key={p.id} value={p.id}>
+                                                           {p.name} - {formatPrice(p.price)}
+                                                         </option>
+                                                       ))}
+                                                   </select>
+                                                   <p className="text-xs text-muted-foreground">
+                                                     Escolha qual produto adicional deseja oferecer
+                                                   </p>
+                                                 </div>
+
+                                                 <div className="space-y-2">
+                                                   <Label htmlFor="orderBumpPrice">Preço do Order Bump (AOA)</Label>
+                                                   <Input
+                                                     id="orderBumpPrice"
+                                                     type="number"
+                                                     min="0"
+                                                     step="0.01"
+                                                     value={editOrderBumpPrice}
+                                                     onChange={(e) => setEditOrderBumpPrice(e.target.value)}
+                                                     placeholder="Ex: 2500"
+                                                   />
+                                                   <p className="text-xs text-muted-foreground">
+                                                     Defina um preço especial com desconto para incentivar a compra
+                                                   </p>
+                                                 </div>
+
+                                                 <div className="space-y-2">
+                                                   <Label htmlFor="orderBumpHeadline">Título da Oferta</Label>
+                                                   <Input
+                                                     id="orderBumpHeadline"
+                                                     type="text"
+                                                     value={editOrderBumpHeadline}
+                                                     onChange={(e) => setEditOrderBumpHeadline(e.target.value)}
+                                                     placeholder="Ex: Sim, eu quero adicionar este bónus!"
+                                                   />
+                                                   <p className="text-xs text-muted-foreground">
+                                                     Crie uma mensagem atrativa para a oferta adicional
+                                                   </p>
+                                                 </div>
+                                               </div>
+                                             )}
                                            </div>
                                          </div>
                                        </TabsContent>
