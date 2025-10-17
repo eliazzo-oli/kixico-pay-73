@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatPriceFromDB } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import { CheckoutTimer } from '@/components/CheckoutTimer';
+import { usePixelTracking } from '@/hooks/usePixelTracking';
 
 interface Product {
   id: string;
@@ -24,6 +25,7 @@ interface Product {
   checkout_timer_enabled?: boolean | null;
   checkout_show_kixicopay_logo?: boolean | null;
   accepted_payment_methods?: string[] | null;
+  pixel_id?: string | null;
 }
 
 export default function Checkout() {
@@ -63,6 +65,12 @@ export default function Checkout() {
     discount_value: number;
   } | null>(null);
   const [isCouponLoading, setIsCouponLoading] = useState(false);
+
+  // Initialize pixel tracking
+  const { trackPurchase } = usePixelTracking({
+    pixelId: product?.pixel_id,
+    enabled: !!product?.pixel_id,
+  });
 
   useEffect(() => {
     fetchProduct();
@@ -272,6 +280,12 @@ export default function Checkout() {
         .eq('id', transaction.id);
 
       if (updateError) throw updateError;
+
+      // Track purchase with pixel
+      trackPurchase({
+        value: calculateDiscountedPrice(product.price) / 100,
+        currency: 'AOA',
+      });
 
       // Se for upgrade de plano, atualizar o plano do usuário e enviar notificação
       if (planData && planData.isUpgrade) {

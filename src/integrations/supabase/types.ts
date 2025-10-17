@@ -204,6 +204,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          pixel_id: string | null
           price: number
           updated_at: string
           user_id: string
@@ -221,6 +222,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          pixel_id?: string | null
           price: number
           updated_at?: string
           user_id: string
@@ -238,6 +240,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          pixel_id?: string | null
           price?: number
           updated_at?: string
           user_id?: string

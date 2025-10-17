@@ -60,6 +60,7 @@ interface Product {
   checkout_timer_enabled?: boolean | null;
   checkout_show_kixicopay_logo?: boolean | null;
   accepted_payment_methods?: string[] | null;
+  pixel_id?: string | null;
 }
 
 // Interface for real Supabase product data
@@ -76,6 +77,7 @@ interface SupabaseProduct {
   checkout_timer_enabled?: boolean | null;
   checkout_show_kixicopay_logo?: boolean | null;
   accepted_payment_methods?: string[] | null;
+  pixel_id?: string | null;
 }
 
 export default function DashboardProducts() {
@@ -98,6 +100,7 @@ export default function DashboardProducts() {
   const [editBackgroundColor, setEditBackgroundColor] = useState('#ffffff');
   const [editTextColor, setEditTextColor] = useState('#000000');
   const [editButtonColor, setEditButtonColor] = useState('#6366f1');
+  const [editPixelId, setEditPixelId] = useState('');
   const [editTimerEnabled, setEditTimerEnabled] = useState(false);
   const [editShowKixicoPayLogo, setEditShowKixicoPayLogo] = useState(true);
   
@@ -231,6 +234,7 @@ export default function DashboardProducts() {
     setEditButtonColor(product.checkout_button_color || '#6366f1');
     setEditTimerEnabled(product.checkout_timer_enabled || false);
     setEditShowKixicoPayLogo(product.checkout_show_kixicopay_logo !== false);
+    setEditPixelId(product.pixel_id || '');
     setEditingPaymentMethods(
       product.accepted_payment_methods && product.accepted_payment_methods.length > 0 
         ? product.accepted_payment_methods 
@@ -291,6 +295,7 @@ export default function DashboardProducts() {
           checkout_timer_enabled: editTimerEnabled,
           checkout_show_kixicopay_logo: editShowKixicoPayLogo,
           accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
+          pixel_id: editPixelId || null,
         })
         .eq('id', editingProduct.id)
         .eq('user_id', user?.id);
@@ -310,6 +315,7 @@ export default function DashboardProducts() {
               checkout_timer_enabled: editTimerEnabled,
               checkout_show_kixicopay_logo: editShowKixicoPayLogo,
               accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
+              pixel_id: editPixelId || null,
             }
           : p
       ));
@@ -599,11 +605,12 @@ export default function DashboardProducts() {
                                  </DialogHeader>
                                   <div className="space-y-4">
                                      <Tabs defaultValue="produto" className="w-full">
-                                       <TabsList className="grid w-full grid-cols-3">
-                                         <TabsTrigger value="produto">Produto</TabsTrigger>
-                                         <TabsTrigger value="checkout">Checkout</TabsTrigger>
-                                         <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
-                                       </TabsList>
+                                      <TabsList className="grid w-full grid-cols-4">
+                                          <TabsTrigger value="produto">Produto</TabsTrigger>
+                                          <TabsTrigger value="checkout">Checkout</TabsTrigger>
+                                          <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
+                                          <TabsTrigger value="marketing">Marketing</TabsTrigger>
+                                        </TabsList>
                                       
                                       <TabsContent value="produto" className="space-y-4 mt-4">
                                         <div className="space-y-2">
@@ -807,7 +814,30 @@ export default function DashboardProducts() {
                                           </div>
                                         </div>
                                        </TabsContent>
-                                     </Tabs>
+                                       
+                                       <TabsContent value="marketing" className="space-y-4 mt-4">
+                                         <div className="space-y-4">
+                                           <h4 className="font-medium text-foreground">Rastreamento de Anúncios</h4>
+                                           <p className="text-sm text-muted-foreground">
+                                             Configure o rastreamento de conversões para otimizar os seus anúncios
+                                           </p>
+                                           
+                                           <div className="space-y-2">
+                                             <Label htmlFor="pixelId">Pixel ID</Label>
+                                             <Input
+                                               id="pixelId"
+                                               type="text"
+                                               value={editPixelId}
+                                               onChange={(e) => setEditPixelId(e.target.value)}
+                                               placeholder="Ex: 1234567890"
+                                             />
+                                             <p className="text-xs text-muted-foreground">
+                                               Insira aqui o seu Pixel ID do Facebook, TikTok ou outra plataforma de anúncios para rastrear as suas vendas.
+                                             </p>
+                                           </div>
+                                         </div>
+                                       </TabsContent>
+                                      </Tabs>
                                      <div className="flex justify-end space-x-2 mt-6">
                                       <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                                         Cancelar
