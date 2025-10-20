@@ -142,8 +142,22 @@ export default function CouponManager({ productId, productName }: CouponManagerP
     } catch (error: any) {
       console.error('Error creating coupon:', error);
       
-      // Check if error has a message from the edge function
-      const errorMessage = error?.message || 'Erro ao criar cupão. Tente novamente.';
+      // Extract error message from the edge function response
+      let errorMessage = 'Erro ao criar cupão. Tente novamente.';
+      
+      // If it's a FunctionsHttpError, try to get the response data
+      if (error?.context?.body) {
+        try {
+          const errorData = typeof error.context.body === 'string' 
+            ? JSON.parse(error.context.body) 
+            : error.context.body;
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If parsing fails, use the default message
+        }
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
       
       toast({
         title: 'Erro',

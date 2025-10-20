@@ -663,11 +663,24 @@ export default function DashboardProducts() {
                                           <Label htmlFor="price">Preço (AOA)</Label>
                                           <Input
                                             id="price"
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
+                                            type="text"
                                             value={editPrice}
-                                            onChange={(e) => setEditPrice(e.target.value)}
+                                            onChange={(e) => {
+                                              const value = e.target.value.replace(/\D/g, '');
+                                              setEditPrice(value);
+                                            }}
+                                            placeholder="Ex: 10 000"
+                                            onBlur={(e) => {
+                                              const value = e.target.value.replace(/\D/g, '');
+                                              if (value) {
+                                                const formatted = parseInt(value).toLocaleString('pt-PT');
+                                                e.target.value = formatted;
+                                              }
+                                            }}
+                                            onFocus={(e) => {
+                                              const value = e.target.value.replace(/\D/g, '');
+                                              e.target.value = value;
+                                            }}
                                             required
                                           />
                                         </div>
@@ -915,21 +928,33 @@ export default function DashboardProducts() {
                                                    </p>
                                                  </div>
 
-                                                 <div className="space-y-2">
-                                                   <Label htmlFor="orderBumpPrice">Preço do Order Bump (AOA)</Label>
-                                                   <Input
-                                                     id="orderBumpPrice"
-                                                     type="number"
-                                                     min="0"
-                                                     step="0.01"
-                                                     value={editOrderBumpPrice}
-                                                     onChange={(e) => setEditOrderBumpPrice(e.target.value)}
-                                                     placeholder="Ex: 2500"
-                                                   />
-                                                   <p className="text-xs text-muted-foreground">
-                                                     Defina um preço especial com desconto para incentivar a compra
-                                                   </p>
-                                                 </div>
+                                                  <div className="space-y-2">
+                                                    <Label htmlFor="orderBumpPrice">Preço do Order Bump (AOA)</Label>
+                                                    <Input
+                                                      id="orderBumpPrice"
+                                                      type="text"
+                                                      value={editOrderBumpPrice}
+                                                      onChange={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, '');
+                                                        setEditOrderBumpPrice(value);
+                                                      }}
+                                                      placeholder="Ex: 2 500"
+                                                      onBlur={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, '');
+                                                        if (value) {
+                                                          const formatted = parseInt(value).toLocaleString('pt-PT');
+                                                          e.target.value = formatted;
+                                                        }
+                                                      }}
+                                                      onFocus={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, '');
+                                                        e.target.value = value;
+                                                      }}
+                                                    />
+                                                    <p className="text-xs text-muted-foreground">
+                                                      Defina um preço especial com desconto para incentivar a compra
+                                                    </p>
+                                                  </div>
 
                                                  <div className="space-y-2">
                                                    <Label htmlFor="orderBumpHeadline">Título da Oferta</Label>
