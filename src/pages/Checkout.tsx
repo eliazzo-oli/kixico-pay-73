@@ -196,7 +196,7 @@ export default function Checkout() {
   const calculateTotalPrice = () => {
     let total = calculateDiscountedPrice(product?.price || 0);
     if (orderBumpAccepted && product?.order_bump_price) {
-      total += product.order_bump_price * 100; // Convert to cents
+      total += product.order_bump_price; // Already in cents
     }
     return total;
   };
@@ -694,6 +694,10 @@ export default function Checkout() {
                             onClick={handleApplyCoupon}
                             disabled={!couponCode.trim() || isCouponLoading}
                             size="sm"
+                            style={{ 
+                              backgroundColor: buttonColor,
+                              color: '#ffffff'
+                            }}
                           >
                             {isCouponLoading ? 'A aplicar...' : 'Aplicar'}
                           </Button>
@@ -717,7 +721,10 @@ export default function Checkout() {
                         variant="ghost"
                         size="sm"
                         onClick={handleRemoveCoupon}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="hover:bg-red-50"
+                        style={{ 
+                          color: buttonColor
+                        }}
                       >
                         Remover
                       </Button>
@@ -754,7 +761,7 @@ export default function Checkout() {
                           </p>
                           <div className="flex items-center gap-2">
                             <span className="text-2xl font-bold text-primary">
-                              {formatPriceFromDB(product.order_bump_price * 100)}
+                              {formatPriceFromDB(product.order_bump_price)}
                             </span>
                             <Badge variant="secondary" className="bg-green-100 text-green-700">
                               Preço Especial

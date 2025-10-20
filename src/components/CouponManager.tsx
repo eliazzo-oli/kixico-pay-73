@@ -139,11 +139,15 @@ export default function CouponManager({ productId, productName }: CouponManagerP
       setShowCreateDialog(false);
       fetchCoupons();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating coupon:', error);
+      
+      // Check if error has a message from the edge function
+      const errorMessage = error?.message || 'Erro ao criar cupão. Tente novamente.';
+      
       toast({
         title: 'Erro',
-        description: 'Erro ao criar cupão. Tente novamente.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

@@ -320,7 +320,7 @@ export default function DashboardProducts() {
         .from('products')
         .update({ 
           name: editName, 
-          price,
+          price: price * 100, // Convert to cents
           description: editDescription,
           checkout_background_color: editBackgroundColor,
           checkout_text_color: editTextColor,
@@ -331,7 +331,7 @@ export default function DashboardProducts() {
           pixel_id: editPixelId || null,
           order_bump_enabled: editOrderBumpEnabled,
           order_bump_product_id: editOrderBumpEnabled && editOrderBumpProductId ? editOrderBumpProductId : null,
-          order_bump_price: editOrderBumpEnabled && orderBumpPrice ? orderBumpPrice : null,
+          order_bump_price: editOrderBumpEnabled && orderBumpPrice ? orderBumpPrice * 100 : null, // Convert to cents
           order_bump_headline: editOrderBumpEnabled && editOrderBumpHeadline ? editOrderBumpHeadline : null,
         })
         .eq('id', editingProduct.id)
