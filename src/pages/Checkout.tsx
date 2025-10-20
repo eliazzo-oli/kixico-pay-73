@@ -140,7 +140,7 @@ export default function Checkout() {
       // Buscar produto na tabela products do Supabase (sem autenticação)
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled, checkout_show_kixicopay_logo, accepted_payment_methods')
+        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled, checkout_show_kixicopay_logo, accepted_payment_methods, pixel_id, order_bump_enabled, order_bump_product_id, order_bump_price, order_bump_headline')
         .eq('id', currentProductId)
         .eq('active', true)
         .maybeSingle();
