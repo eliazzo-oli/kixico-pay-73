@@ -246,7 +246,7 @@ export default function DashboardProducts() {
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
     setEditName(product.name);
-    setEditPrice((product.price / 100).toString());
+    setEditPrice(product.price.toString());
     setEditDescription(product.description || '');
     setEditBackgroundColor(product.checkout_background_color || '#ffffff');
     setEditTextColor(product.checkout_text_color || '#000000');
@@ -261,7 +261,7 @@ export default function DashboardProducts() {
     );
     setEditOrderBumpEnabled(product.order_bump_enabled || false);
     setEditOrderBumpProductId(product.order_bump_product_id || '');
-    setEditOrderBumpPrice(product.order_bump_price ? (product.order_bump_price / 100).toString() : '');
+    setEditOrderBumpPrice(product.order_bump_price ? product.order_bump_price.toString() : '');
     setEditOrderBumpHeadline(product.order_bump_headline || '');
     setIsDialogOpen(true);
   };
@@ -320,7 +320,7 @@ export default function DashboardProducts() {
         .from('products')
         .update({ 
           name: editName, 
-          price: price * 100, // Convert to cents
+          price: price,
           description: editDescription,
           checkout_background_color: editBackgroundColor,
           checkout_text_color: editTextColor,
@@ -331,7 +331,7 @@ export default function DashboardProducts() {
           pixel_id: editPixelId || null,
           order_bump_enabled: editOrderBumpEnabled,
           order_bump_product_id: editOrderBumpEnabled && editOrderBumpProductId ? editOrderBumpProductId : null,
-          order_bump_price: editOrderBumpEnabled && orderBumpPrice ? orderBumpPrice * 100 : null, // Convert to cents
+          order_bump_price: editOrderBumpEnabled && orderBumpPrice ? orderBumpPrice : null,
           order_bump_headline: editOrderBumpEnabled && editOrderBumpHeadline ? editOrderBumpHeadline : null,
         })
         .eq('id', editingProduct.id)
@@ -344,7 +344,7 @@ export default function DashboardProducts() {
           ? { 
               ...p, 
               name: editName, 
-              price: price * 100, 
+              price: price, 
               description: editDescription,
               checkout_background_color: editBackgroundColor,
               checkout_text_color: editTextColor,
@@ -387,9 +387,8 @@ export default function DashboardProducts() {
     navigate('/products/new');
   };
 
-  const formatPrice = (priceInCents: number) => {
-    const value = priceInCents / 100;
-    return value.toLocaleString('pt-AO', {
+  const formatPrice = (price: number) => {
+    return price.toLocaleString('pt-AO', {
       style: 'currency',
       currency: 'AOA',
     });

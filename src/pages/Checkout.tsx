@@ -196,7 +196,7 @@ export default function Checkout() {
   const calculateTotalPrice = () => {
     let total = calculateDiscountedPrice(product?.price || 0);
     if (orderBumpAccepted && product?.order_bump_price) {
-      total += product.order_bump_price; // Already in cents
+      total += product.order_bump_price;
     }
     return total;
   };
@@ -298,7 +298,7 @@ export default function Checkout() {
             user_id: product.user_id,
             customer_email: customerData.email,
             customer_name: customerData.name,
-            amount: product.order_bump_price, // Already in cents from database
+            amount: product.order_bump_price,
             status: selectedPaymentMethod === 'reference' ? 'pending' : 'pending',
             payment_method: selectedPaymentMethod,
             payment_link: `${window.location.origin}/checkout/${product.id}`,
@@ -342,7 +342,7 @@ export default function Checkout() {
 
       // Track purchase with pixel
       trackPurchase({
-        value: calculateTotalPrice() / 100,
+        value: calculateTotalPrice(),
         currency: 'AOA',
       });
 
@@ -510,7 +510,7 @@ export default function Checkout() {
           {/* Timer de Escassez */}
           {timerEnabled && (
             <div className="mb-6">
-              <CheckoutTimer textColor={textColor} />
+              <CheckoutTimer textColor={textColor} buttonColor={buttonColor} />
             </div>
           )}
 
@@ -631,11 +631,11 @@ export default function Checkout() {
                     {paymentMethods.map((method) => (
                       <div
                         key={method.id}
-                        className={`border rounded-xl p-6 cursor-pointer transition-all duration-300 ${
-                          selectedPaymentMethod === method.id
-                            ? 'border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20'
-                            : 'border-border/50 hover:border-primary/50 hover:shadow-md hover:scale-105'
-                        }`}
+                        className="border-2 rounded-xl p-6 cursor-pointer transition-all duration-300"
+                        style={{
+                          borderColor: selectedPaymentMethod === method.id ? buttonColor : 'hsl(var(--border))',
+                          backgroundColor: selectedPaymentMethod === method.id ? `${buttonColor}15` : 'transparent',
+                        }}
                         onClick={() => setSelectedPaymentMethod(method.id)}
                       >
                         <div className="flex items-center gap-4">
@@ -656,7 +656,10 @@ export default function Checkout() {
                           </div>
                           {selectedPaymentMethod === method.id && (
                             <div className="flex-shrink-0">
-                              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                              <div 
+                                className="w-6 h-6 rounded-full flex items-center justify-center"
+                                style={{ backgroundColor: buttonColor }}
+                              >
                                 <div className="w-2 h-2 bg-white rounded-full"></div>
                               </div>
                             </div>
