@@ -661,10 +661,7 @@ export type Database = {
         Args: { p_data: Json; p_event_type: string; p_user_id: string }
         Returns: string
       }
-      generate_webhook_secret: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_webhook_secret: { Args: never; Returns: string }
       get_user_current_plan: {
         Args: { user_uuid: string }
         Returns: {
