@@ -118,17 +118,18 @@ Deno.serve(async (req) => {
           
           // Check for duplicate code error
           if (createError.code === '23505') {
+            // Return 200 with a structured response to avoid client runtime overlays
             return new Response(
-              JSON.stringify({ error: 'Este código de cupão já existe. Por favor, escolha outro código.' }),
+              JSON.stringify({ ok: false, code: 'DUPLICATE_CODE', error: 'Este código de cupão já existe. Por favor, escolha outro código.' }),
               { 
-                status: 400, 
+                status: 200, 
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
               }
             );
           }
           
           return new Response(
-            JSON.stringify({ error: 'Erro ao criar cupão. Tente novamente.' }),
+            JSON.stringify({ ok: false, error: 'Erro ao criar cupão. Tente novamente.' }),
             { 
               status: 500, 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

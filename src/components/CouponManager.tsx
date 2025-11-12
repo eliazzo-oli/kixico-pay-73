@@ -161,6 +161,16 @@ export default function CouponManager({ productId, productName }: CouponManagerP
         return;
       }
 
+      // Edge function may return 200 with an error payload (e.g., duplicate code)
+      if ((data as any)?.error) {
+        toast({
+          title: 'Erro ao Criar Cupão',
+          description: (data as any).error,
+          variant: 'destructive',
+        });
+        return;
+      }
+
       toast({
         title: 'Cupão criado!',
         description: 'O cupão foi criado com sucesso.',
