@@ -122,7 +122,27 @@ export default function CouponManager({ productId, productName }: CouponManagerP
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        let errorMessage = 'Erro ao criar cupão. Tente novamente.';
+        try {
+          const ctxBody = (error as any)?.context?.body;
+          if (ctxBody) {
+            const parsed = typeof ctxBody === 'string' ? JSON.parse(ctxBody) : ctxBody;
+            errorMessage = parsed.error || errorMessage;
+          } else if ((error as any)?.data?.error) {
+            errorMessage = (error as any).data.error;
+          } else if ((error as any)?.message) {
+            errorMessage = (error as any).message;
+          }
+        } catch {}
+
+        toast({
+          title: 'Erro ao Criar Cupão',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        return;
+      }
 
       toast({
         title: 'Cupão criado!',
