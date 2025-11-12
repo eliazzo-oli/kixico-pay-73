@@ -52,11 +52,28 @@ export default function CouponManager({ productId, productName }: CouponManagerP
     try {
       setIsLoading(true);
       
+      const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('manage-coupons', {
-        body: { product_id: productId, action: 'get' }
+        body: { product_id: productId, action: 'get' },
+        headers: { Authorization: `Bearer ${session?.access_token}` }
       });
 
-      if (error) throw error;
+      if (error) {
+        let errorMessage = 'Erro ao carregar cupões. Tente novamente.';
+        try {
+          const ctxBody = (error as any)?.context?.body;
+          if (ctxBody) {
+            const parsed = typeof ctxBody === 'string' ? JSON.parse(ctxBody) : ctxBody;
+            errorMessage = parsed.error || errorMessage;
+          } else if ((error as any)?.data?.error) {
+            errorMessage = (error as any).data.error;
+          } else if ((error as any)?.message) {
+            errorMessage = (error as any).message;
+          }
+        } catch {}
+        toast({ title: 'Erro', description: errorMessage, variant: 'destructive' });
+        return;
+      }
 
       setCoupons(data || []);
     } catch (error) {
@@ -212,7 +229,22 @@ export default function CouponManager({ productId, productName }: CouponManagerP
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        let errorMessage = 'Erro ao eliminar cupão. Tente novamente.';
+        try {
+          const ctxBody = (error as any)?.context?.body;
+          if (ctxBody) {
+            const parsed = typeof ctxBody === 'string' ? JSON.parse(ctxBody) : ctxBody;
+            errorMessage = parsed.error || errorMessage;
+          } else if ((error as any)?.data?.error) {
+            errorMessage = (error as any).data.error;
+          } else if ((error as any)?.message) {
+            errorMessage = (error as any).message;
+          }
+        } catch {}
+        toast({ title: 'Erro', description: errorMessage, variant: 'destructive' });
+        return;
+      }
 
       toast({
         title: 'Cupão eliminado',
