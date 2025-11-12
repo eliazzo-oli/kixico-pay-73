@@ -62,7 +62,7 @@ export default function Checkout() {
   
   // Order Bump states
   const [orderBumpAccepted, setOrderBumpAccepted] = useState(false);
-  const [orderBumpProduct, setOrderBumpProduct] = useState<{ name: string; description: string } | null>(null);
+  const [orderBumpProduct, setOrderBumpProduct] = useState<{ name: string; description: string; image_url?: string } | null>(null);
   
   // Coupon states
   const [showCouponField, setShowCouponField] = useState(false);
@@ -96,7 +96,7 @@ export default function Checkout() {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('name, description')
+        .select('name, description, image_url')
         .eq('id', product.order_bump_product_id)
         .single();
 
@@ -298,7 +298,7 @@ export default function Checkout() {
             user_id: product.user_id,
             customer_email: customerData.email,
             customer_name: customerData.name,
-            amount: product.order_bump_price * 100, // Convert to cents
+            amount: product.order_bump_price, // Already in cents from database
             status: selectedPaymentMethod === 'reference' ? 'pending' : 'pending',
             payment_method: selectedPaymentMethod,
             payment_link: `${window.location.origin}/checkout/${product.id}`,
@@ -739,33 +739,63 @@ export default function Checkout() {
                  orderBumpProduct && (
                   <div className="space-y-4">
                     <div 
-                      className="border-2 border-dashed border-primary/30 rounded-lg p-6 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer"
+                      className="border-2 rounded-lg p-6 transition-all cursor-pointer"
                       onClick={() => setOrderBumpAccepted(!orderBumpAccepted)}
+                      style={{
+                        borderColor: orderBumpAccepted ? buttonColor : 'rgba(0,0,0,0.1)',
+                        backgroundColor: orderBumpAccepted ? `${buttonColor}10` : 'transparent',
+                      }}
                     >
                       <div className="flex items-start gap-4">
                         <input
                           type="checkbox"
                           checked={orderBumpAccepted}
                           onChange={(e) => setOrderBumpAccepted(e.target.checked)}
-                          className="mt-1 h-5 w-5 rounded border-primary text-primary focus:ring-primary cursor-pointer"
+                          className="mt-1 h-5 w-5 rounded cursor-pointer"
+                          style={{
+                            accentColor: buttonColor,
+                          }}
                         />
                         <div className="flex-1">
-                          <h4 className="font-semibold text-foreground text-lg mb-2">
-                            {product.order_bump_headline || '🎁 Oferta Especial!'}
-                          </h4>
-                          <p className="text-foreground mb-3">
-                            <strong>{orderBumpProduct.name}</strong>
-                          </p>
-                          <p className="text-muted-foreground text-sm mb-3">
-                            {orderBumpProduct.description}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold text-primary">
-                              {formatPriceFromDB(product.order_bump_price)}
-                            </span>
-                            <Badge variant="secondary" className="bg-green-100 text-green-700">
-                              Preço Especial
-                            </Badge>
+                          <div className="flex items-start gap-4">
+                            {orderBumpProduct.image_url && (
+                              <img 
+                                src={orderBumpProduct.image_url} 
+                                alt={orderBumpProduct.name}
+                                className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <h4 
+                                className="font-semibold text-lg mb-2"
+                                style={{ color: textColor }}
+                              >
+                                {product.order_bump_headline || '🎁 Oferta Especial!'}
+                              </h4>
+                              <p className="font-bold mb-2" style={{ color: textColor }}>
+                                {orderBumpProduct.name}
+                              </p>
+                              <p className="text-sm mb-3 opacity-75" style={{ color: textColor }}>
+                                {orderBumpProduct.description}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span 
+                                  className="text-2xl font-bold"
+                                  style={{ color: buttonColor }}
+                                >
+                                  {formatPriceFromDB(product.order_bump_price)}
+                                </span>
+                                <Badge 
+                                  variant="secondary" 
+                                  style={{
+                                    backgroundColor: `${buttonColor}20`,
+                                    color: buttonColor,
+                                  }}
+                                >
+                                  Preço Especial
+                                </Badge>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>

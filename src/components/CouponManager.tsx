@@ -141,26 +141,34 @@ export default function CouponManager({ productId, productName }: CouponManagerP
 
     } catch (error: any) {
       console.error('Error creating coupon:', error);
+      console.log('Full error object:', JSON.stringify(error, null, 2));
       
       // Extract error message from the edge function response
       let errorMessage = 'Erro ao criar cupão. Tente novamente.';
       
-      // If it's a FunctionsHttpError, try to get the response data
-      if (error?.context?.body) {
-        try {
+      // Try to get the error from different possible locations
+      try {
+        // Try to get the response body
+        if (error?.context?.body) {
           const errorData = typeof error.context.body === 'string' 
             ? JSON.parse(error.context.body) 
             : error.context.body;
           errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          // If parsing fails, use the default message
+        } 
+        // Try data.error
+        else if (error?.data?.error) {
+          errorMessage = error.data.error;
         }
-      } else if (error?.message) {
-        errorMessage = error.message;
+        // Try the error message directly
+        else if (error?.message && error.message !== 'Edge Function returned a non-2xx status code') {
+          errorMessage = error.message;
+        }
+      } catch (parseError) {
+        console.error('Error parsing error message:', parseError);
       }
       
       toast({
-        title: 'Erro',
+        title: 'Erro ao Criar Cupão',
         description: errorMessage,
         variant: 'destructive',
       });
