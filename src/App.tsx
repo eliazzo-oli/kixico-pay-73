@@ -17,6 +17,7 @@ import DashboardWithdrawals from "./pages/DashboardWithdrawals";
 import NewProduct from "./pages/NewProduct";
 import Checkout from "./pages/Checkout";
 import PaymentReference from "./pages/PaymentReference";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import Demo from "./pages/Demo";
 import Precos from "./pages/Precos";
 import Produtos from "./pages/Produtos";
@@ -125,6 +126,7 @@ const App = () => {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/checkout/:productId" element={<Checkout />} />
               <Route path="/payment-reference" element={<PaymentReference />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/invoice/:transactionId" element={
                 <ProtectedRoute>
                   <Invoice />

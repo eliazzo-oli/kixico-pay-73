@@ -10,14 +10,18 @@ const corsHeaders = {
 
 interface EmailRequest {
   to: string;
-  template: 'welcome' | 'password-reset' | 'password-changed' | 'sale-notification' | 'withdrawal-request' | 'withdrawal-approved';
+  template: 'welcome' | 'password-reset' | 'password-changed' | 'sale-notification' | 'withdrawal-request' | 'withdrawal-approved' | 'purchase-confirmation';
   data: {
     userName?: string;
     productName?: string;
+    productCategory?: string;
     saleAmount?: number;
+    purchaseAmount?: number;
     withdrawalAmount?: number;
     resetUrl?: string;
     dashboardUrl?: string;
+    deliveryLink?: string;
+    supportContact?: string;
   };
 }
 
@@ -251,6 +255,68 @@ const emailTemplates = {
             <div class="amount">${data.withdrawalAmount} AOA</div>
             <p>O valor deverá estar disponível na sua conta em breve, dependendo do seu banco.</p>
             <p>Obrigado por usar a KixicoPay!</p>
+          </div>
+          <div class="footer">
+            <p>© 2025 KixicoPay - Plataforma de Pagamentos Digitais</p>
+            <p>Este é um e-mail automático, por favor não responda.</p>
+          </div>
+        </body>
+      </html>
+    `
+  },
+  'purchase-confirmation': {
+    subject: (data: any) => `A sua compra de ${data.productName} foi confirmada!`,
+    html: (data: any) => `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+            .header { text-align: center; background: #f8f9fa; padding: 20px; }
+            .logo { font-size: 24px; font-weight: bold; color: #2563eb; }
+            .content { padding: 30px 20px; }
+            .success { background: #d1fae5; color: #065f46; padding: 15px; border-radius: 6px; margin: 15px 0; text-align: center; }
+            .product-info { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .amount { font-size: 24px; font-weight: bold; color: #2563eb; margin: 10px 0; }
+            .button { display: inline-block; background: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+            .support-box { background: #eff6ff; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #2563eb; }
+            .footer { text-align: center; padding: 20px; background: #f8f9fa; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">KixicoPay</div>
+          </div>
+          <div class="content">
+            <div class="success">
+              <h2>✅ Pagamento Aprovado!</h2>
+            </div>
+            <p>Olá <strong>${data.userName}</strong>,</p>
+            <p>O seu pagamento foi aprovado com sucesso! Aqui estão os detalhes da sua compra:</p>
+            
+            <div class="product-info">
+              <h3 style="margin-top: 0; color: #2563eb;">${data.productName}</h3>
+              ${data.productCategory ? `<p style="margin: 5px 0;"><span style="background: #e0e7ff; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${data.productCategory}</span></p>` : ''}
+              <div class="amount">${data.purchaseAmount} AOA</div>
+            </div>
+            
+            ${data.deliveryLink ? `
+              <p><strong>Para aceder ao seu produto, clique no botão abaixo:</strong></p>
+              <center>
+                <a href="${data.deliveryLink}" class="button">🎁 Aceder ao seu Produto Agora</a>
+              </center>
+            ` : ''}
+            
+            ${data.supportContact ? `
+              <div class="support-box">
+                <p style="margin: 0 0 10px 0;"><strong>💬 Informações do Vendedor</strong></p>
+                <p style="margin: 0;">Se precisar de ajuda ou tiver alguma dúvida sobre o produto, contacte o suporte do vendedor:</p>
+                <p style="margin: 10px 0 0 0; font-weight: bold; color: #2563eb;">${data.supportContact}</p>
+              </div>
+            ` : ''}
+            
+            <p style="margin-top: 30px;">Obrigado por usar a KixicoPay!</p>
           </div>
           <div class="footer">
             <p>© 2025 KixicoPay - Plataforma de Pagamentos Digitais</p>

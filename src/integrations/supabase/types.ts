@@ -210,6 +210,9 @@ export type Database = {
           order_bump_product_id: string | null
           pixel_id: string | null
           price: number
+          product_category: string | null
+          product_delivery_link: string | null
+          seller_support_contact: string | null
           updated_at: string
           user_id: string
         }
@@ -232,6 +235,9 @@ export type Database = {
           order_bump_product_id?: string | null
           pixel_id?: string | null
           price: number
+          product_category?: string | null
+          product_delivery_link?: string | null
+          seller_support_contact?: string | null
           updated_at?: string
           user_id: string
         }
@@ -254,6 +260,9 @@ export type Database = {
           order_bump_product_id?: string | null
           pixel_id?: string | null
           price?: number
+          product_category?: string | null
+          product_delivery_link?: string | null
+          seller_support_contact?: string | null
           updated_at?: string
           user_id?: string
         }

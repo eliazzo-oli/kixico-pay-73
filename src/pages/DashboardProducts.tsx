@@ -65,6 +65,9 @@ interface Product {
   order_bump_product_id?: string | null;
   order_bump_price?: number | null;
   order_bump_headline?: string | null;
+  product_delivery_link?: string | null;
+  seller_support_contact?: string | null;
+  product_category?: string | null;
 }
 
 // Interface for real Supabase product data
@@ -86,6 +89,9 @@ interface SupabaseProduct {
   order_bump_product_id?: string | null;
   order_bump_price?: number | null;
   order_bump_headline?: string | null;
+  product_delivery_link?: string | null;
+  seller_support_contact?: string | null;
+  product_category?: string | null;
 }
 
 export default function DashboardProducts() {
@@ -117,6 +123,11 @@ export default function DashboardProducts() {
   const [editOrderBumpProductId, setEditOrderBumpProductId] = useState('');
   const [editOrderBumpPrice, setEditOrderBumpPrice] = useState('');
   const [editOrderBumpHeadline, setEditOrderBumpHeadline] = useState('');
+  
+  // New product fields
+  const [editProductCategory, setEditProductCategory] = useState('');
+  const [editDeliveryLink, setEditDeliveryLink] = useState('');
+  const [editSupportContact, setEditSupportContact] = useState('');
   
   const { toast } = useToast();
 
@@ -263,6 +274,9 @@ export default function DashboardProducts() {
     setEditOrderBumpProductId(product.order_bump_product_id || '');
     setEditOrderBumpPrice(product.order_bump_price ? product.order_bump_price.toString() : '');
     setEditOrderBumpHeadline(product.order_bump_headline || '');
+    setEditProductCategory(product.product_category || '');
+    setEditDeliveryLink(product.product_delivery_link || '');
+    setEditSupportContact(product.seller_support_contact || '');
     setIsDialogOpen(true);
   };
 
@@ -333,6 +347,9 @@ export default function DashboardProducts() {
           order_bump_product_id: editOrderBumpEnabled && editOrderBumpProductId ? editOrderBumpProductId : null,
           order_bump_price: editOrderBumpEnabled && orderBumpPrice ? orderBumpPrice : null,
           order_bump_headline: editOrderBumpEnabled && editOrderBumpHeadline ? editOrderBumpHeadline : null,
+          product_category: editProductCategory || null,
+          product_delivery_link: editDeliveryLink || null,
+          seller_support_contact: editSupportContact || null,
         })
         .eq('id', editingProduct.id)
         .eq('user_id', user?.id);
@@ -648,7 +665,7 @@ export default function DashboardProducts() {
                                           <TabsTrigger value="marketing">Marketing</TabsTrigger>
                                         </TabsList>
                                       
-                                      <TabsContent value="produto" className="space-y-4 mt-4">
+                                       <TabsContent value="produto" className="space-y-4 mt-4">
                                         <div className="space-y-2">
                                           <Label htmlFor="name">Nome do Produto</Label>
                                           <Input
@@ -691,6 +708,53 @@ export default function DashboardProducts() {
                                             onChange={(e) => setEditDescription(e.target.value)}
                                             rows={3}
                                           />
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                          <Label htmlFor="product-category">Categoria do Produto</Label>
+                                          <select
+                                            id="product-category"
+                                            value={editProductCategory}
+                                            onChange={(e) => setEditProductCategory(e.target.value)}
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                          >
+                                            <option value="">Selecione uma categoria</option>
+                                            <option value="Curso Online">Curso Online</option>
+                                            <option value="Ebook">Ebook</option>
+                                            <option value="Mentoria">Mentoria</option>
+                                            <option value="Evento">Evento</option>
+                                            <option value="Serviço">Serviço</option>
+                                            <option value="Software">Software</option>
+                                            <option value="Outro">Outro</option>
+                                          </select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          <Label htmlFor="delivery-link">Link de Entrega do Produto *</Label>
+                                          <Input
+                                            id="delivery-link"
+                                            type="url"
+                                            value={editDeliveryLink}
+                                            onChange={(e) => setEditDeliveryLink(e.target.value)}
+                                            placeholder="https://..."
+                                          />
+                                          <p className="text-xs text-muted-foreground">
+                                            O seu cliente receberá este link imediatamente após o pagamento ser aprovado.
+                                          </p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          <Label htmlFor="support-contact">Contacto de Suporte ao Cliente *</Label>
+                                          <Input
+                                            id="support-contact"
+                                            type="text"
+                                            value={editSupportContact}
+                                            onChange={(e) => setEditSupportContact(e.target.value)}
+                                            placeholder="seuemail@exemplo.com ou +244 900 000 000"
+                                          />
+                                          <p className="text-xs text-muted-foreground">
+                                            O seu cliente verá este contacto (e-mail ou WhatsApp) na página de sucesso e no e-mail de confirmação.
+                                          </p>
                                         </div>
                                       </TabsContent>
                                      

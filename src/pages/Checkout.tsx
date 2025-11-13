@@ -30,6 +30,9 @@ interface Product {
   order_bump_product_id?: string | null;
   order_bump_price?: number | null;
   order_bump_headline?: string | null;
+  product_delivery_link?: string | null;
+  seller_support_contact?: string | null;
+  product_category?: string | null;
 }
 
 export default function Checkout() {
@@ -140,7 +143,7 @@ export default function Checkout() {
       // Buscar produto na tabela products do Supabase (sem autenticação)
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled, checkout_show_kixicopay_logo, accepted_payment_methods, pixel_id, order_bump_enabled, order_bump_product_id, order_bump_price, order_bump_headline')
+        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled, checkout_show_kixicopay_logo, accepted_payment_methods, pixel_id, order_bump_enabled, order_bump_product_id, order_bump_price, order_bump_headline, product_delivery_link, seller_support_contact, product_category')
         .eq('id', currentProductId)
         .eq('active', true)
         .maybeSingle();
@@ -346,6 +349,27 @@ export default function Checkout() {
         currency: 'AOA',
       });
 
+      // Send purchase confirmation email to customer
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            to: customerData.email,
+            template: 'purchase-confirmation',
+            data: {
+              userName: customerData.name,
+              productName: product.name,
+              productCategory: product.product_category,
+              purchaseAmount: calculateTotalPrice(),
+              deliveryLink: product.product_delivery_link,
+              supportContact: product.seller_support_contact,
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error('Error sending purchase confirmation email:', emailError);
+        // Don't fail the transaction if email fails
+      }
+
       // Se for upgrade de plano, atualizar o plano do usuário e enviar notificação
       if (planData && planData.isUpgrade) {
         // Buscar usuário atual autenticado 
@@ -390,23 +414,33 @@ export default function Checkout() {
         }
       }
 
-      toast({
-        title: 'Pagamento realizado!',
-        description: planData?.isUpgrade 
-          ? 'Seu upgrade foi processado com sucesso!' 
-          : 'Seu pagamento foi processado com sucesso.',
-      });
+      // Redirecionar para dashboard após upgrade ou para página de sucesso
+      if (planData?.isUpgrade) {
+        toast({
+          title: 'Pagamento realizado!',
+          description: 'Seu upgrade foi processado com sucesso!',
+        });
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
+      } else {
+        // Redirect to success page with product info
+        navigate('/payment-success', {
+          state: {
+            productName: product.name,
+            productCategory: product.product_category,
+            productDeliveryLink: product.product_delivery_link,
+            sellerSupportContact: product.seller_support_contact,
+            customerEmail: customerData.email,
+            customerName: customerData.name,
+            amount: calculateTotalPrice(),
+          }
+        });
+      }
 
       // Reset form
       setCustomerData({ name: '', email: '', phone: '' });
       setSelectedPaymentMethod('');
-
-      // Redirecionar para dashboard após upgrade
-      if (planData?.isUpgrade) {
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-      }
 
     } catch (error) {
       console.error('Error processing payment:', error);

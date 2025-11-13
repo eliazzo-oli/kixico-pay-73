@@ -22,6 +22,9 @@ export default function NewProduct() {
     name: '',
     description: '',
     price: '',
+    product_category: '',
+    product_delivery_link: '',
+    seller_support_contact: '',
   });
   const [checkoutCustomization, setCheckoutCustomization] = useState({
     backgroundColor: '#ffffff',
@@ -207,6 +210,9 @@ export default function NewProduct() {
           checkout_button_color: checkoutCustomization.buttonColor,
           checkout_timer_enabled: checkoutCustomization.timerEnabled,
           accepted_payment_methods: acceptedPaymentMethods.length > 0 ? acceptedPaymentMethods : null,
+          product_category: formData.product_category || null,
+          product_delivery_link: formData.product_delivery_link || null,
+          seller_support_contact: formData.seller_support_contact || null,
         });
 
       if (error) throw error;
@@ -315,6 +321,58 @@ export default function NewProduct() {
                         placeholder="Descreva seu produto..."
                         rows={4}
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="product_category">Categoria do Produto</Label>
+                      <select
+                        id="product_category"
+                        name="product_category"
+                        value={formData.product_category}
+                        onChange={(e) => setFormData(prev => ({ ...prev, product_category: e.target.value }))}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <option value="">Selecione uma categoria</option>
+                        <option value="Curso Online">Curso Online</option>
+                        <option value="Ebook">Ebook</option>
+                        <option value="Mentoria">Mentoria</option>
+                        <option value="Evento">Evento</option>
+                        <option value="Serviço">Serviço</option>
+                        <option value="Software">Software</option>
+                        <option value="Outro">Outro</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="product_delivery_link">Link de Entrega do Produto *</Label>
+                      <Input
+                        id="product_delivery_link"
+                        name="product_delivery_link"
+                        type="url"
+                        value={formData.product_delivery_link}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="https://..."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        O seu cliente receberá este link imediatamente após o pagamento ser aprovado.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="seller_support_contact">Contacto de Suporte ao Cliente *</Label>
+                      <Input
+                        id="seller_support_contact"
+                        name="seller_support_contact"
+                        type="text"
+                        value={formData.seller_support_contact}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="seuemail@exemplo.com ou +244 900 000 000"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        O seu cliente verá este contacto (e-mail ou WhatsApp) na página de sucesso e no e-mail de confirmação.
+                      </p>
                     </div>
 
                     <div className="space-y-2">
