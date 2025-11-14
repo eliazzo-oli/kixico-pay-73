@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Home } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { TrialBanner } from '@/components/TrialBanner';
 import { usePlan } from '@/hooks/usePlan';
@@ -31,21 +31,31 @@ interface WithdrawalRequest {
   bank_name?: string;
   account_number?: string;
   user_id: string;
+  currency: string;
+}
+
+interface WalletBalance {
+  currency: 'AOA' | 'BRL';
+  balance: number;
 }
 
 export default function DashboardWithdrawals() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentPlan, features, hasFeature, getPlanDisplayName } = usePlan();
   const { user } = useAuth();
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [loading, setLoading] = useState(true);
-  const [availableBalance, setAvailableBalance] = useState(0);
+  const [wallets, setWallets] = useState<WalletBalance[]>([]);
+  const [selectedCurrency, setSelectedCurrency] = useState<'AOA' | 'BRL'>((location.state as any)?.selectedCurrency || 'AOA');
   const { toast } = useToast();
 
-  console.log('DashboardWithdrawals rendered', { user, withdrawalAmount, availableBalance });
+  console.log('DashboardWithdrawals rendered', { user, withdrawalAmount, selectedCurrency });
 
-  const minimumWithdrawal = 5000; // 50,00 AOA
+  const minimumWithdrawal = 5000; // 50,00 AOA or BRL
+
+  const availableBalance = wallets.find(w => w.currency === selectedCurrency)?.balance || 0;
 
   useEffect(() => {
     if (user) {
@@ -57,32 +67,15 @@ export default function DashboardWithdrawals() {
     try {
       setLoading(true);
       
-      // Calculate balance based on transactions following the correct formula:
-      // Saldo = (Soma de todas as Vendas + Ajustes de Crédito) - (Saques Aprovados + Ajustes de Débito)
-      const { data: transactionsData, error: transactionsError } = await supabase
-        .from('transactions')
-        .select('amount, status, payment_method, product_id')
+      // Fetch wallets
+      const { data: walletsData, error: walletsError } = await supabase
+        .from('wallets')
+        .select('currency, balance')
         .eq('user_id', user?.id)
-        .eq('status', 'completed');
+        .order('currency', { ascending: true });
 
-      if (transactionsError) throw transactionsError;
-
-      let calculatedBalance = 0;
-      
-      // Add sales (transactions with product_id and positive amount)
-      transactionsData?.forEach(transaction => {
-        if (transaction.product_id && transaction.amount > 0) {
-          calculatedBalance += Number(transaction.amount);
-        }
-        // Add manual credit adjustments
-        else if (transaction.payment_method === 'credito') {
-          calculatedBalance += Number(transaction.amount);
-        }
-        // Subtract withdrawals and manual debit adjustments
-        else if (transaction.payment_method === 'saque' || transaction.payment_method === 'debito') {
-          calculatedBalance -= Math.abs(Number(transaction.amount));
-        }
-      });
+      if (walletsError) throw walletsError;
+      setWallets((walletsData || []) as WalletBalance[]);
 
       // Fetch user withdrawals
       const { data: withdrawalsData, error: withdrawalsError } = await supabase
@@ -93,10 +86,10 @@ export default function DashboardWithdrawals() {
 
       if (withdrawalsError) throw withdrawalsError;
 
-      setAvailableBalance(Math.max(0, calculatedBalance) * 100); // Convert to cents, ensure non-negative
       setWithdrawals((withdrawalsData || []).map(w => ({
         ...w,
-        status: w.status as 'pending' | 'approved' | 'rejected'
+        status: w.status as 'pending' | 'approved' | 'rejected',
+        currency: w.currency || 'AOA'
       })));
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -110,13 +103,13 @@ export default function DashboardWithdrawals() {
     }
   };
 
-  // Calculate totals based on real data
+  // Calculate totals based on real data and selected currency
   const totalWithdrawn = withdrawals
-    .filter(w => w.status === 'approved')
-    .reduce((sum, w) => sum + (Number(w.amount) * 100), 0); // Convert to cents
+    .filter(w => w.status === 'approved' && w.currency === selectedCurrency)
+    .reduce((sum, w) => sum + Number(w.amount), 0);
 
   const pendingWithdrawals = withdrawals.filter(w => 
-    w.status === 'pending'
+    w.status === 'pending' && w.currency === selectedCurrency
   ).length;
 
   const formatPrice = (priceInCents: number) => {
@@ -171,7 +164,8 @@ export default function DashboardWithdrawals() {
         .insert({
           user_id: user.id,
           amount: amount / 100, // Convert back to normal value
-          status: 'pending'
+          status: 'pending',
+          currency: selectedCurrency,
         });
 
       if (error) throw error;
@@ -350,7 +344,20 @@ export default function DashboardWithdrawals() {
               <CardContent>
                 <form onSubmit={handleRequestWithdrawal} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Valor do Saque (AOA)</Label>
+                    <Label htmlFor="currency">Carteira</Label>
+                    <select
+                      id="currency"
+                      value={selectedCurrency}
+                      onChange={(e) => setSelectedCurrency(e.target.value as 'AOA' | 'BRL')}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="AOA">AOA - Kwanza Angolano (Saldo: {formatPrice(wallets.find(w => w.currency === 'AOA')?.balance || 0)})</option>
+                      <option value="BRL">BRL - Real Brasileiro (Saldo: {formatPrice(wallets.find(w => w.currency === 'BRL')?.balance || 0)})</option>
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Valor do Saque ({selectedCurrency})</Label>
                     <Input
                       id="amount"
                       type="number"
