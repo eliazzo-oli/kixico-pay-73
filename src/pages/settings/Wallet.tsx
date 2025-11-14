@@ -2,77 +2,65 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Home } from 'lucide-react';
+import { Home, ArrowRightLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
+interface Wallet {
+  currency: string;
+  balance: number;
+}
+
 export default function Wallet() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [balance, setBalance] = useState<number>(0);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchUserBalance() {
+    async function fetchWallets() {
       if (!user?.id) return;
       
       try {
-        // Calculate balance based on transactions following the correct formula:
-        // Saldo = (Soma de todas as Vendas + Ajustes de Crédito) - (Saques Aprovados + Ajustes de Débito)
-        const { data: transactions, error } = await supabase
-          .from('transactions')
-          .select('amount, payment_method, product_id')
+        const { data, error } = await supabase
+          .from('wallets')
+          .select('currency, balance')
           .eq('user_id', user.id)
-          .eq('status', 'completed');
+          .order('currency', { ascending: true });
 
         if (error) {
-          console.error('Erro ao buscar transações:', error);
+          console.error('Erro ao buscar carteiras:', error);
           toast({
-            title: "Erro ao carregar saldo",
-            description: "Não foi possível carregar seu saldo atual.",
+            title: "Erro ao carregar saldos",
+            description: "Não foi possível carregar seus saldos.",
             variant: "destructive",
           });
           return;
         }
 
-        let calculatedBalance = 0;
-        
-        transactions?.forEach(transaction => {
-          // Add sales (transactions with product_id and positive amount)
-          if (transaction.product_id && transaction.amount > 0) {
-            calculatedBalance += Number(transaction.amount);
-          }
-          // Add manual credit adjustments
-          else if (transaction.payment_method === 'credito') {
-            calculatedBalance += Number(transaction.amount);
-          }
-          // Subtract withdrawals and manual debit adjustments
-          else if (transaction.payment_method === 'saque' || transaction.payment_method === 'debito') {
-            calculatedBalance -= Math.abs(Number(transaction.amount));
-          }
-        });
-
-        setBalance(Math.max(0, calculatedBalance)); // Ensure non-negative balance
+        setWallets(data || []);
       } catch (error) {
-        console.error('Erro ao buscar saldo:', error);
-        setBalance(0);
+        console.error('Erro ao buscar carteiras:', error);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchUserBalance();
+    fetchWallets();
   }, [user?.id, toast]);
 
-  const formatPrice = (value: number) => {
-    console.log('Formatando valor:', value); // Debug log
+  const formatPrice = (value: number, currency: string) => {
     return value.toLocaleString('pt-PT', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }) + ' AOA';
+    }) + ' ' + currency;
+  };
+
+  const getCurrencyName = (currency: string) => {
+    return currency === 'AOA' ? 'Kwanza Angolano' : 'Real Brasileiro';
   };
 
   if (loading) {
@@ -83,13 +71,16 @@ export default function Wallet() {
     );
   }
 
+  const aoaWallet = wallets.find(w => w.currency === 'AOA');
+  const brlWallet = wallets.find(w => w.currency === 'BRL');
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Carteira</h2>
+          <h2 className="text-2xl font-bold">Minhas Carteiras</h2>
           <p className="text-muted-foreground">
-            Acompanhe seu saldo e histórico de transações.
+            Gerencie seus saldos em AOA e BRL separadamente.
           </p>
         </div>
         <Button
@@ -105,50 +96,73 @@ export default function Wallet() {
       <Separator />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Carteira AOA */}
         <Card>
           <CardHeader>
-            <CardTitle>Saldo total</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>💰 Carteira AOA</span>
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">{getCurrencyName('AOA')}</p>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">
-              {formatPrice(balance)}
+            <div className="text-3xl font-bold text-primary mb-4">
+              {formatPrice(aoaWallet?.balance || 0, 'AOA')}
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Inclui valores bloqueados
-            </p>
+            <Button 
+              className="w-full"
+              onClick={() => navigate('/dashboard/withdrawals', { state: { currency: 'AOA' } })}
+            >
+              Solicitar saque em AOA
+            </Button>
           </CardContent>
         </Card>
 
+        {/* Carteira BRL */}
         <Card>
           <CardHeader>
-            <CardTitle>Disponível para saque</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>🇧🇷 Carteira BRL</span>
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">{getCurrencyName('BRL')}</p>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-success">
-              {formatPrice(balance)}
+            <div className="text-3xl font-bold text-primary mb-4">
+              {formatPrice(brlWallet?.balance || 0, 'BRL')}
             </div>
-            <Button 
-              className="mt-4 w-full"
-              onClick={() => {
-                console.log('Botão clicado, redirecionando para /dashboard/withdrawals');
-                navigate('/dashboard/withdrawals');
-              }}
-            >
-              Solicitar saque
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                className="w-full"
+                onClick={() => navigate('/dashboard/withdrawals', { state: { currency: 'BRL' } })}
+              >
+                Solicitar saque em BRL
+              </Button>
+              <Button 
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  toast({
+                    title: "Câmbio em breve",
+                    description: "A funcionalidade de conversão BRL → AOA estará disponível em breve.",
+                  });
+                }}
+              >
+                <ArrowRightLeft className="w-4 h-4 mr-2" />
+                Converter para AOA
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Histórico de transações</CardTitle>
+          <CardTitle>Como funciona?</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Nenhuma transação encontrada.</p>
-            <p className="text-sm mt-2">Suas transações aparecerão aqui quando forem processadas.</p>
-          </div>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>• <strong>Vendas em AOA</strong> creditam automaticamente na sua Carteira AOA</p>
+          <p>• <strong>Vendas em BRL</strong> creditam automaticamente na sua Carteira BRL</p>
+          <p>• Você pode sacar de cada carteira separadamente</p>
+          <p>• Em breve: converta saldo BRL para AOA com taxas competitivas</p>
         </CardContent>
       </Card>
     </div>
