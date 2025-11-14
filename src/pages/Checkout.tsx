@@ -33,6 +33,7 @@ interface Product {
   product_delivery_link?: string | null;
   seller_support_contact?: string | null;
   product_category?: string | null;
+  currency?: string | null;
 }
 
 export default function Checkout() {
@@ -143,7 +144,7 @@ export default function Checkout() {
       // Buscar produto na tabela products do Supabase (sem autenticação)
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled, checkout_show_kixicopay_logo, accepted_payment_methods, pixel_id, order_bump_enabled, order_bump_product_id, order_bump_price, order_bump_headline, product_delivery_link, seller_support_contact, product_category')
+        .select('id, name, description, price, image_url, user_id, active, checkout_background_color, checkout_text_color, checkout_button_color, checkout_timer_enabled, checkout_show_kixicopay_logo, accepted_payment_methods, pixel_id, order_bump_enabled, order_bump_product_id, order_bump_price, order_bump_headline, product_delivery_link, seller_support_contact, product_category, currency')
         .eq('id', currentProductId)
         .eq('active', true)
         .maybeSingle();
@@ -286,6 +287,7 @@ export default function Checkout() {
           status: selectedPaymentMethod === 'reference' ? 'pending' : 'pending',
           payment_method: selectedPaymentMethod,
           payment_link: `${window.location.origin}/checkout/${product.id}`,
+          currency: product.currency || 'AOA',
         })
         .select()
         .single();
@@ -305,6 +307,7 @@ export default function Checkout() {
             status: selectedPaymentMethod === 'reference' ? 'pending' : 'pending',
             payment_method: selectedPaymentMethod,
             payment_link: `${window.location.origin}/checkout/${product.id}`,
+            currency: product.currency || 'AOA',
           });
 
         if (orderBumpError) {
@@ -475,10 +478,27 @@ export default function Checkout() {
     },
   ];
 
-  // Filter payment methods based on product configuration
-  const paymentMethods = product?.accepted_payment_methods && product.accepted_payment_methods.length > 0
-    ? allPaymentMethods.filter(method => product.accepted_payment_methods!.includes(method.id))
-    : allPaymentMethods;
+  // Filter payment methods based on product currency and configuration
+  let paymentMethods = allPaymentMethods;
+  
+  // First, filter by currency
+  const currency = product?.currency || 'AOA';
+  if (currency === 'AOA') {
+    // For AOA, show only Angolan payment methods
+    paymentMethods = allPaymentMethods.filter(method => 
+      ['reference', 'multicaixa', 'paypal_ao'].includes(method.id)
+    );
+  } else if (currency === 'BRL') {
+    // For BRL, show only Mercado Pago (which will support PIX, Boleto, Credit Card)
+    paymentMethods = allPaymentMethods.filter(method => method.id === 'mercado_pago');
+  }
+  
+  // Then, filter by product's accepted payment methods if configured
+  if (product?.accepted_payment_methods && product.accepted_payment_methods.length > 0) {
+    paymentMethods = paymentMethods.filter(method => 
+      product.accepted_payment_methods!.includes(method.id)
+    );
+  }
 
   if (isLoading) {
     return (

@@ -25,6 +25,7 @@ export default function NewProduct() {
     product_category: '',
     product_delivery_link: '',
     seller_support_contact: '',
+    currency: 'AOA',
   });
   const [checkoutCustomization, setCheckoutCustomization] = useState({
     backgroundColor: '#ffffff',
@@ -213,6 +214,7 @@ export default function NewProduct() {
           product_category: formData.product_category || null,
           product_delivery_link: formData.product_delivery_link || null,
           seller_support_contact: formData.seller_support_contact || null,
+          currency: formData.currency,
         });
 
       if (error) throw error;
@@ -341,6 +343,24 @@ export default function NewProduct() {
                         <option value="Software">Software</option>
                         <option value="Outro">Outro</option>
                       </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="currency">Moeda do Produto *</Label>
+                      <select
+                        id="currency"
+                        name="currency"
+                        value={formData.currency}
+                        onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        required
+                      >
+                        <option value="AOA">AOA - Kwanza Angolano</option>
+                        <option value="BRL">BRL - Real Brasileiro</option>
+                      </select>
+                      <p className="text-xs text-muted-foreground">
+                        A moeda determina quais métodos de pagamento serão exibidos no checkout.
+                      </p>
                     </div>
 
                     <div className="space-y-2">
