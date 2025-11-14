@@ -128,6 +128,7 @@ export default function DashboardProducts() {
   const [editProductCategory, setEditProductCategory] = useState('');
   const [editDeliveryLink, setEditDeliveryLink] = useState('');
   const [editSupportContact, setEditSupportContact] = useState('');
+  const [editCurrency, setEditCurrency] = useState('AOA');
   
   const { toast } = useToast();
 
@@ -277,6 +278,7 @@ export default function DashboardProducts() {
     setEditProductCategory(product.product_category || '');
     setEditDeliveryLink(product.product_delivery_link || '');
     setEditSupportContact(product.seller_support_contact || '');
+    setEditCurrency((product as any).currency || 'AOA');
     setIsDialogOpen(true);
   };
 
@@ -350,6 +352,7 @@ export default function DashboardProducts() {
           product_category: editProductCategory || null,
           product_delivery_link: editDeliveryLink || null,
           seller_support_contact: editSupportContact || null,
+          currency: editCurrency,
         })
         .eq('id', editingProduct.id)
         .eq('user_id', user?.id);
@@ -727,6 +730,22 @@ export default function DashboardProducts() {
                                             <option value="Software">Software</option>
                                             <option value="Outro">Outro</option>
                                           </select>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                          <Label htmlFor="product-currency">Moeda do Produto *</Label>
+                                          <select
+                                            id="product-currency"
+                                            value={editCurrency}
+                                            onChange={(e) => setEditCurrency(e.target.value)}
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                          >
+                                            <option value="AOA">AOA - Kwanza Angolano</option>
+                                            <option value="BRL">BRL - Real Brasileiro</option>
+                                          </select>
+                                          <p className="text-xs text-muted-foreground">
+                                            A moeda determina quais métodos de pagamento serão exibidos no checkout.
+                                          </p>
                                         </div>
 
                                         <div className="space-y-2">
