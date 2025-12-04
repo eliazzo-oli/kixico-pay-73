@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.send-kyc-notification]
 verify_jwt = false
+
+[functions.convert-currency]
+verify_jwt = true

@@ -67,6 +67,72 @@ export type Database = {
           },
         ]
       }
+      currency_conversions: {
+        Row: {
+          created_at: string
+          exchange_rate: number
+          from_amount: number
+          from_currency: string
+          id: string
+          status: string
+          to_amount: number
+          to_currency: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exchange_rate: number
+          from_amount: number
+          from_currency: string
+          id?: string
+          status?: string
+          to_amount: number
+          to_currency: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exchange_rate?: number
+          from_amount?: number
+          from_currency?: string
+          id?: string
+          status?: string
+          to_amount?: number
+          to_currency?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      exchange_rates: {
+        Row: {
+          created_at: string
+          from_currency: string
+          id: string
+          rate: number
+          to_currency: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          from_currency: string
+          id?: string
+          rate: number
+          to_currency: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          from_currency?: string
+          id?: string
+          rate?: number
+          to_currency?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       notification_read_status: {
         Row: {
           created_at: string | null
