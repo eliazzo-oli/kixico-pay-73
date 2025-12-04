@@ -9,6 +9,7 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 import { UserAvatar } from '@/components/UserAvatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeOnlineCount } from '@/hooks/useRealtimeOnlineCount';
+import { ExchangeRateManager } from '@/components/ExchangeRateManager';
 import kixicoPayLogo from "/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png";
 
 interface DashboardStats {
@@ -212,9 +213,10 @@ export default function AdminDashboard() {
                 </Card>
               </div>
 
-              {/* Notification Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Notification and Exchange Rate Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <SendNotificationForm />
+                <ExchangeRateManager />
 
                 <Card className="border-border/50 shadow-lg">
                   <CardHeader>
