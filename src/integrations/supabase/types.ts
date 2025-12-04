@@ -200,6 +200,7 @@ export type Database = {
           checkout_text_color: string | null
           checkout_timer_enabled: boolean | null
           created_at: string
+          currency: string
           description: string | null
           id: string
           image_url: string | null
@@ -225,6 +226,7 @@ export type Database = {
           checkout_text_color?: string | null
           checkout_timer_enabled?: boolean | null
           created_at?: string
+          currency?: string
           description?: string | null
           id?: string
           image_url?: string | null
@@ -250,6 +252,7 @@ export type Database = {
           checkout_text_color?: string | null
           checkout_timer_enabled?: boolean | null
           created_at?: string
+          currency?: string
           description?: string | null
           id?: string
           image_url?: string | null
@@ -400,6 +403,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          currency: string
           customer_email: string
           customer_name: string | null
           id: string
@@ -413,6 +417,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          currency?: string
           customer_email: string
           customer_name?: string | null
           id?: string
@@ -426,6 +431,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          currency?: string
           customer_email?: string
           customer_name?: string | null
           id?: string
@@ -507,6 +513,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       webhook_attempts: {
         Row: {
@@ -634,6 +667,7 @@ export type Database = {
           amount: number
           bank_name: string | null
           created_at: string
+          currency: string
           id: string
           status: string
           updated_at: string
@@ -644,6 +678,7 @@ export type Database = {
           amount: number
           bank_name?: string | null
           created_at?: string
+          currency?: string
           id?: string
           status?: string
           updated_at?: string
@@ -654,6 +689,7 @@ export type Database = {
           amount?: number
           bank_name?: string | null
           created_at?: string
+          currency?: string
           id?: string
           status?: string
           updated_at?: string
