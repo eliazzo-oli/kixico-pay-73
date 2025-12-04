@@ -29,10 +29,11 @@ export default function Wallet() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [wallets, setWallets] = useState<WalletBalance[]>([]);
+const [wallets, setWallets] = useState<WalletBalance[]>([]);
   const [conversions, setConversions] = useState<ConversionHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [showConversionModal, setShowConversionModal] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
 
   const fetchData = async () => {
     if (!user?.id) return;
@@ -67,6 +68,18 @@ export default function Wallet() {
 
       if (!conversionsError && conversionsData) {
         setConversions(conversionsData as ConversionHistory[]);
+      }
+
+      // Fetch current exchange rate
+      const { data: rateData } = await supabase
+        .from('exchange_rates')
+        .select('rate')
+        .eq('from_currency', 'BRL')
+        .eq('to_currency', 'AOA')
+        .maybeSingle();
+
+      if (rateData) {
+        setExchangeRate(rateData.rate);
       }
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
@@ -150,15 +163,22 @@ export default function Wallet() {
                       Solicitar saque em {wallet.currency}
                     </Button>
                     {wallet.currency === 'BRL' && (
-                      <Button 
-                        variant="secondary"
-                        className="w-full flex items-center gap-2"
-                        onClick={() => setShowConversionModal(true)}
-                        disabled={wallet.balance <= 0}
-                      >
-                        <ArrowRightLeft className="w-4 h-4" />
-                        Converter para Kz
-                      </Button>
+                      <>
+                        {exchangeRate && (
+                          <div className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md text-center">
+                            Cotação hoje: R$ 1,00 = {exchangeRate.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} Kz
+                          </div>
+                        )}
+                        <Button 
+                          variant="secondary"
+                          className="w-full flex items-center gap-2"
+                          onClick={() => setShowConversionModal(true)}
+                          disabled={wallet.balance <= 0}
+                        >
+                          <ArrowRightLeft className="w-4 h-4" />
+                          Converter para Kz
+                        </Button>
+                      </>
                     )}
                   </div>
                 </CardContent>
