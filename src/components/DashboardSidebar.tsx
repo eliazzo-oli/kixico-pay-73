@@ -81,13 +81,13 @@ export function DashboardSidebar() {
                 <img 
                   src="/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png" 
                   alt="KixicoPay" 
-                  className="h-10 w-auto"
+                  className="h-20 w-auto"
                 />
               ) : (
                 <img 
                   src="/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png" 
                   alt="KixicoPay" 
-                  className="h-8 w-8 object-contain"
+                  className="h-10 w-10 object-contain"
                 />
               )}
             </button>
