@@ -19,6 +19,7 @@ import { TrialBanner } from '@/components/TrialBanner';
 import { SaleNotificationPopup } from '@/components/SaleNotificationPopup';
 import KycBanner from '@/components/KycBanner';
 import { useSaleNotifications } from '@/hooks/useSaleNotifications';
+import { MobileTransactionList } from '@/components/MobileTransactionList';
 
 import kixicoPayLogo from "/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png";
 import { 
@@ -325,12 +326,12 @@ export default function Dashboard() {
         <DashboardSidebar />
         
         <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <header className="border-b border-border bg-card/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-4">
+          {/* Header - Compact on mobile */}
+          <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur-sm">
+            <div className="flex items-center justify-between px-3 py-2 md:px-6 md:py-3">
+              <div className="flex items-center gap-2 md:gap-4">
                 <SidebarTrigger />
-                {/* Logo */}
+                {/* Logo - smaller on mobile */}
                 <button 
                   onClick={handleLogoClick}
                   className="flex items-center hover:opacity-80 transition-opacity"
@@ -338,11 +339,11 @@ export default function Dashboard() {
                   <img 
                     src={kixicoPayLogo} 
                     alt="KixicoPay" 
-                    className="h-32 w-auto"
+                    className="h-12 md:h-20 w-auto"
                   />
                 </button>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 md:gap-4">
                 <NotificationCenter />
                 <UserAvatar 
                   userId={user?.id || ''} 
@@ -353,135 +354,126 @@ export default function Dashboard() {
             </div>
           </header>
 
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-3 md:p-6">
             <TrialBanner />
             <KycBanner />
             
-            {/* Welcome Section */}
+            {/* Welcome Section - Compact on mobile */}
             {userProfile && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border border-border/30">
-                <h2 className="text-xl font-semibold text-foreground">
+              <div className="mb-4 md:mb-6 p-3 md:p-4 bg-primary/5 rounded-lg border border-border/30">
+                <h2 className="text-base md:text-xl font-semibold text-foreground">
                   Bem-vindo, {userProfile.fantasy_name || userProfile.name}! 👋
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Aqui você pode gerenciar seus produtos e acompanhar suas vendas.
+                <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                  Gerencie seus produtos e acompanhe suas vendas.
                 </p>
               </div>
             )}
             
-            {/* Plan Status Bar */}
-            <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border border-border/50">
-              <div className="flex items-center justify-between">
+            {/* Plan Status Bar - Compact on mobile */}
+            <div className="mb-4 md:mb-6 p-3 md:p-4 bg-primary/5 rounded-lg border border-border/50">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-0">
                 <div>
-                  <h3 className="font-semibold text-foreground">Plano Atual: {getPlanDisplayName(currentPlan)}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {products.length}/{features.maxProducts === Infinity ? '∞' : features.maxProducts} produtos criados
+                  <h3 className="text-sm md:text-base font-semibold text-foreground">Plano: {getPlanDisplayName(currentPlan)}</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    {products.length}/{features.maxProducts === Infinity ? '∞' : features.maxProducts} produtos
                   </p>
                   {features.hasAdvancedDashboard && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="default" className="text-xs">
-                        <Zap className="h-3 w-3 mr-1" />
-                        Dashboard Avançado
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      <Badge variant="default" className="text-[10px] md:text-xs px-1.5 py-0">
+                        <Zap className="h-2.5 w-2.5 mr-0.5" />
+                        Avançado
                       </Badge>
                       {features.hasEnterpriseReports && (
-                        <Badge variant="secondary" className="text-xs">
-                          <FileText className="h-3 w-3 mr-1" />
-                          Relatórios Empresariais
+                        <Badge variant="secondary" className="text-[10px] md:text-xs px-1.5 py-0">
+                          <FileText className="h-2.5 w-2.5 mr-0.5" />
+                          Relatórios
                         </Badge>
                       )}
                     </div>
                   )}
                 </div>
-                <Button variant="outline" onClick={() => navigate('/precos')}>
-                  Fazer Upgrade
+                <Button variant="outline" size="sm" onClick={() => navigate('/precos')}>
+                  Upgrade
                 </Button>
               </div>
             </div>
 
             {/* Enhanced Dashboard for Empresarial Plan */}
             {currentPlan === 'empresarial' ? (
-              <div className="space-y-6">
-                <div className="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border border-primary/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Crown className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-foreground">Dashboard Empresarial Completo</h3>
+              <div className="space-y-4 md:space-y-6">
+                <div className="p-3 md:p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Crown className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm md:text-base font-semibold text-foreground">Dashboard Empresarial</h3>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Acesso completo a todas as funcionalidades avançadas, analytics em tempo real, relatórios empresariais e saques instantâneos sem taxa.
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    Analytics em tempo real, relatórios e saques sem taxa.
                   </p>
                 </div>
                 
-                {/* Enhanced Stats Grid for Enterprise */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 shadow-lg">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Receita Líquida
+                {/* Enhanced Stats Grid for Enterprise - 2 cols on mobile */}
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                      <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                        Receita
                       </CardTitle>
-                      <DollarSign className="h-5 w-5 text-primary" />
+                      <DollarSign className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-foreground">
+                      <div className="text-lg md:text-2xl font-bold text-foreground">
                         {stats.netRevenue.toLocaleString('pt-AO', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        })} AOA
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0
+                        })}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                        <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                        +15.2% este mês
-                      </p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">AOA</p>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-primary/20 bg-gradient-to-br from-secondary/5 to-secondary/10 shadow-lg">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Saques Instantâneos
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                      <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                        Taxa Saque
                       </CardTitle>
-                      <Zap className="h-5 w-5 text-primary" />
+                      <Zap className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-foreground">
-                        0% Taxa
+                      <div className="text-lg md:text-2xl font-bold text-foreground">
+                        0%
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Processamento instantâneo
-                      </p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">Instantâneo</p>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-primary/20 bg-gradient-to-br from-accent/5 to-accent/10 shadow-lg">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Produtos Ilimitados
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                      <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                        Produtos
                       </CardTitle>
-                      <Package className="h-5 w-5 text-primary" />
+                      <Package className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-foreground">
+                      <div className="text-lg md:text-2xl font-bold text-foreground">
                         {products.length}/∞
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Sem limites de criação
-                      </p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">Ilimitados</p>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-primary/20 bg-gradient-to-br from-muted/5 to-muted/10 shadow-lg">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        API Empresarial
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                      <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                        API
                       </CardTitle>
-                      <Activity className="h-5 w-5 text-primary" />
+                      <Activity className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-foreground">
+                      <div className="text-lg md:text-2xl font-bold text-foreground">
                         Ativo
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Integração completa
-                      </p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">Integrado</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -690,77 +682,77 @@ export default function Dashboard() {
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="overview" className="space-y-6">
-                  {/* Enhanced Overview Stats */}
-                  <div className="mb-8">
-                    <h2 className="text-lg font-semibold text-foreground mb-4">Visão Geral</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">
-                            Total de Vendas
+                <TabsContent value="overview" className="space-y-4 md:space-y-6">
+                  {/* Enhanced Overview Stats - 2 cols on mobile */}
+                  <div className="mb-4 md:mb-8">
+                    <h2 className="text-sm md:text-lg font-semibold text-foreground mb-3">Visão Geral</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+                      <Card className="border-border/50">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                          <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                            Vendas
                           </CardTitle>
-                          <ShoppingCart className="h-5 w-5 text-primary" />
+                          <ShoppingCart className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary" />
                         </CardHeader>
                         <CardContent>
-                          <div className="text-3xl font-bold text-foreground">
+                          <div className="text-lg md:text-2xl font-bold text-foreground">
                             {stats.totalSales}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            vendas realizadas
+                          <p className="text-[10px] md:text-xs text-muted-foreground">
+                            realizadas
                           </p>
                         </CardContent>
                       </Card>
 
-                      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">
-                            Produtos Vendidos
+                      <Card className="border-border/50">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                          <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                            Produtos
                           </CardTitle>
-                          <Package className="h-5 w-5 text-primary" />
+                          <Package className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary" />
                         </CardHeader>
                         <CardContent>
-                          <div className="text-3xl font-bold text-foreground">
+                          <div className="text-lg md:text-2xl font-bold text-foreground">
                             {stats.productsSold}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            produtos vendidos
+                          <p className="text-[10px] md:text-xs text-muted-foreground">
+                            vendidos
                           </p>
                         </CardContent>
                       </Card>
 
-                      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">
-                            Faturamento Líquido
+                      <Card className="border-border/50">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                          <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                            Receita
                           </CardTitle>
-                          <DollarSign className="h-5 w-5 text-primary" />
+                          <DollarSign className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary" />
                         </CardHeader>
                         <CardContent>
-                          <div className="text-3xl font-bold text-foreground">
+                          <div className="text-lg md:text-2xl font-bold text-foreground">
                             {stats.netRevenue.toLocaleString('pt-AO', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })} AOA
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0
+                            })}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            receita líquida
+                          <p className="text-[10px] md:text-xs text-muted-foreground">
+                            AOA
                           </p>
                         </CardContent>
                       </Card>
 
-                      <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">
-                            Taxa de Crescimento
+                      <Card className="border-border/50">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                          <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                            Crescimento
                           </CardTitle>
-                          <TrendingUp className="h-5 w-5 text-primary" />
+                          <TrendingUp className="h-3.5 w-3.5 md:h-5 md:w-5 text-primary" />
                         </CardHeader>
                         <CardContent>
-                          <div className="text-3xl font-bold text-foreground">
+                          <div className="text-lg md:text-2xl font-bold text-foreground">
                             +12.5%
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-[10px] md:text-xs text-muted-foreground">
                             vs. mês anterior
                           </p>
                         </CardContent>
@@ -769,66 +761,80 @@ export default function Dashboard() {
                   </div>
 
                   {/* Recent Transactions */}
-                  <div className="mb-8">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-foreground">Transações Recentes</h2>
+                  <div className="mb-4 md:mb-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+                      <h2 className="text-sm md:text-lg font-semibold text-foreground">Transações Recentes</h2>
                       <div className="flex items-center gap-2">
-                        <Button onClick={exportTransactions} variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Exportar Histórico
+                        <Button onClick={exportTransactions} variant="outline" size="sm" className="flex-1 md:flex-none">
+                          <Download className="h-3 w-3 mr-1" />
+                          <span className="hidden md:inline">Exportar</span>
                         </Button>
-                        <Button onClick={handleCreateProduct} variant="default" size="sm">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Novo Produto
+                        <Button onClick={handleCreateProduct} variant="default" size="sm" className="flex-1 md:flex-none">
+                          <Plus className="h-3 w-3 mr-1" />
+                          <span className="hidden md:inline">Novo</span> Produto
                         </Button>
                       </div>
                     </div>
                     
-                    <Card className="border-border/50 shadow-lg">
+                    {/* Mobile: Card List */}
+                    <div className="md:hidden">
+                      <Card className="border-border/50">
+                        <CardContent className="p-2">
+                          <MobileTransactionList 
+                            transactions={transactions}
+                            onViewInvoice={(id) => navigate(`/invoice/${id}`)}
+                            onCopyLink={(productId) => generatePaymentLink(productId)}
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Desktop: Table */}
+                    <Card className="border-border/50 hidden md:block">
                       <CardContent className="p-0">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>ID da Transação</TableHead>
+                              <TableHead>ID</TableHead>
                               <TableHead>Data</TableHead>
                               <TableHead>Produto</TableHead>
-                              <TableHead>Valor da Venda</TableHead>
-                              <TableHead>Status do Pagamento</TableHead>
+                              <TableHead>Valor</TableHead>
+                              <TableHead>Status</TableHead>
                               <TableHead className="text-right">Ações</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {transactions.length === 0 ? (
                               <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                <TableCell colSpan={6} className="text-center py-6 text-muted-foreground text-sm">
                                   Nenhuma transação encontrada
                                 </TableCell>
                               </TableRow>
                             ) : (
                               transactions.map((transaction) => (
                                 <TableRow key={transaction.id}>
-                                  <TableCell className="font-mono text-sm">
+                                  <TableCell className="font-mono text-xs">
                                     {transaction.id.substring(0, 8)}...
                                   </TableCell>
-                                  <TableCell>
+                                  <TableCell className="text-sm">
                                     {new Date(transaction.created_at).toLocaleDateString('pt-AO')}
                                   </TableCell>
-                                   <TableCell className="font-medium">
+                                   <TableCell className="font-medium text-sm">
                                      {transaction.product_id 
                                        ? (transaction.products?.name || 'Produto não encontrado')
                                        : transaction.payment_method === 'saque'
                                          ? 'Saque Aprovado'
                                          : transaction.payment_method === 'credito'
-                                           ? 'Ajuste Manual (Crédito)'
+                                           ? 'Ajuste (Crédito)'
                                            : transaction.payment_method === 'debito'
-                                             ? 'Ajuste Manual (Débito)'
+                                             ? 'Ajuste (Débito)'
                                              : 'Transação do Sistema'
                                      }
                                    </TableCell>
-                                  <TableCell className="font-semibold">
+                                  <TableCell className="font-semibold text-sm">
                                     {transaction.amount.toLocaleString('pt-AO', {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2
+                                      minimumFractionDigits: 0,
+                                      maximumFractionDigits: 0
                                     })} AOA
                                   </TableCell>
                                   <TableCell>
@@ -840,6 +846,7 @@ export default function Dashboard() {
                                           ? 'secondary'
                                           : 'destructive'
                                       }
+                                      className="text-xs"
                                     >
                                       {transaction.status === 'completed'
                                         ? 'Pago'
@@ -849,13 +856,13 @@ export default function Dashboard() {
                                     </Badge>
                                   </TableCell>
                                   <TableCell className="text-right">
-                                    <div className="flex items-center justify-end gap-2">
+                                    <div className="flex items-center justify-end gap-1">
                                       <Button 
                                         variant="outline" 
                                         size="sm"
                                         onClick={() => navigate(`/invoice/${transaction.id}`)}
                                       >
-                                        <Eye className="h-4 w-4" />
+                                        <Eye className="h-3.5 w-3.5" />
                                       </Button>
                                       <Button 
                                         variant="outline" 
@@ -865,7 +872,7 @@ export default function Dashboard() {
                                           if (product) generatePaymentLink(product.id);
                                         }}
                                       >
-                                        <Copy className="h-4 w-4" />
+                                        <Copy className="h-3.5 w-3.5" />
                                       </Button>
                                     </div>
                                   </TableCell>
