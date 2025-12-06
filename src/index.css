@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* KixicoPay Design System - Plataforma de pagamentos para Angola
-Cores preto e roxo - Elegância e modernidade
+/* KixicoPay Design System - High-End Fintech
+Plus Jakarta Sans typography with compact mobile-first design
 */
 
 @layer base {
@@ -50,16 +50,16 @@ Cores preto e roxo - Elegância e modernidade
     --input: 0 0% 85%;
     --ring: 267 100% 50%;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px hsl(0 0% 5% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 5% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 5% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 5% / 0.1);
-    --shadow-primary: 0 10px 30px -10px hsl(267 100% 50% / 0.3);
+    /* Shadows - subtle for flat design */
+    --shadow-sm: 0 1px 2px hsl(0 0% 5% / 0.03);
+    --shadow-md: 0 2px 4px -1px hsl(0 0% 5% / 0.05);
+    --shadow-lg: 0 4px 8px -2px hsl(0 0% 5% / 0.06);
+    --shadow-xl: 0 8px 16px -4px hsl(0 0% 5% / 0.08);
+    --shadow-primary: 0 4px 12px -4px hsl(267 100% 50% / 0.2);
 
     /* Animations */
-    --transition-all: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-fast: all 0.15s ease-out;
+    --transition-all: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.1s ease-out;
 
     --radius: 0.75rem;
 
@@ -69,7 +69,7 @@ Cores preto e roxo - Elegância e modernidade
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 267 100% 95%;
     --sidebar-accent-foreground: 267 100% 30%;
-    --sidebar-border: 0 0% 85%;
+    --sidebar-border: 0 0% 90%;
     --sidebar-ring: 267 100% 50%;
   }
 
@@ -113,16 +113,16 @@ Cores preto e roxo - Elegância e modernidade
     --destructive-foreground: 0 0% 5%;
 
     /* Border and input */
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
     --ring: 267 100% 60%;
 
     /* Shadows ajustadas para tema escuro */
-    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.4);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.5);
-    --shadow-primary: 0 10px 30px -10px hsl(267 100% 60% / 0.4);
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.2);
+    --shadow-md: 0 2px 4px -1px hsl(0 0% 0% / 0.25);
+    --shadow-lg: 0 4px 8px -2px hsl(0 0% 0% / 0.3);
+    --shadow-xl: 0 8px 16px -4px hsl(0 0% 0% / 0.35);
+    --shadow-primary: 0 4px 12px -4px hsl(267 100% 60% / 0.3);
 
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 95%;
@@ -140,17 +140,44 @@ Cores preto e roxo - Elegância e modernidade
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-  
-  /* Smooth theme transitions */
-  * {
-    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+  html {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Proteção de imagens - Bloqueia download e captura */
+  body {
+    @apply bg-background text-foreground text-sm;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Responsive typography - compact on mobile */
+  h1 {
+    @apply text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl;
+  }
+
+  h2 {
+    @apply text-xl font-semibold tracking-tight md:text-2xl lg:text-3xl;
+  }
+
+  h3 {
+    @apply text-lg font-semibold md:text-xl;
+  }
+
+  h4 {
+    @apply text-base font-medium md:text-lg;
+  }
+
+  /* Compact spacing utilities */
+  .space-compact {
+    @apply gap-3 md:gap-4 lg:gap-6;
+  }
+
+  .p-compact {
+    @apply p-3 md:p-4 lg:p-6;
+  }
+
+  /* Proteção de imagens */
   img {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -162,15 +189,10 @@ Cores preto e roxo - Elegância e modernidade
     user-drag: none;
     pointer-events: auto;
     -webkit-touch-callout: none;
-  }
-
-  /* Bloqueia clique direito em imagens */
-  img {
     -webkit-context-menu: none;
     context-menu: none;
   }
 
-  /* Desabilita arrastar imagens */
   img::selection {
     background: transparent;
   }
@@ -179,19 +201,10 @@ Cores preto e roxo - Elegância e modernidade
     background: transparent;
   }
 
-  /* Proteção contra print screen */
   @media print {
     img {
       display: none !important;
     }
-  }
-
-  /* Bloqueia F12 e ferramentas de desenvolvedor */
-  body {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
   }
 
   /* Permite seleção de texto em elementos específicos */
@@ -202,7 +215,7 @@ Cores preto e roxo - Elegância e modernidade
     user-select: text;
   }
 
-  /* Animação contínua para logotipos - Tic-tac suave */
+  /* Logo animation */
   @keyframes logo-tick-tock {
     0%, 100% { 
       transform: rotate(-2deg) scale(1);
@@ -217,7 +230,6 @@ Cores preto e roxo - Elegância e modernidade
     transform-origin: center;
   }
 
-  /* Otimização de imagens para carregamento rápido */
   .optimized-image {
     image-rendering: optimizeQuality;
     image-rendering: -webkit-optimize-contrast;
@@ -226,7 +238,6 @@ Cores preto e roxo - Elegância e modernidade
     will-change: transform;
   }
 
-  /* Animação suave para imagens da página inicial */
   @keyframes gentle-float {
     0%, 100% { 
       transform: translateY(0px) scale(1);
