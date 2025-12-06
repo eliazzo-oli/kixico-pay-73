@@ -73,21 +73,24 @@ export function DashboardSidebar() {
         {/* Logo/Brand */}
         <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
-            {sidebarState !== 'collapsed' ? (
-              <button 
-                onClick={() => navigate('/dashboard')}
-                className="text-lg font-bold text-primary hover:opacity-80 transition-opacity"
-              >
-                KixicoPay
-              </button>
-            ) : (
-              <button 
-                onClick={() => navigate('/dashboard')}
-                className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center hover:opacity-80 transition-opacity"
-              >
-                <CreditCard className="w-4 h-4 text-white" />
-              </button>
-            )}
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="hover:opacity-80 transition-opacity"
+            >
+              {sidebarState !== 'collapsed' ? (
+                <img 
+                  src="/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png" 
+                  alt="KixicoPay" 
+                  className="h-10 w-auto"
+                />
+              ) : (
+                <img 
+                  src="/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png" 
+                  alt="KixicoPay" 
+                  className="h-8 w-8 object-contain"
+                />
+              )}
+            </button>
             {sidebarState !== 'collapsed' && (
               <button
                 onClick={() => setSidebarOpen(false)}
