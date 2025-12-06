@@ -59,6 +59,28 @@ export function AdminSidebar() {
   return (
     <Sidebar className={state === "collapsed" ? "w-14" : "w-60"} collapsible="icon">
       <SidebarContent>
+        {/* Logo/Brand */}
+        <div className="p-4 border-b border-border">
+          <button 
+            onClick={() => navigate('/admin')}
+            className="hover:opacity-80 transition-opacity"
+          >
+            {state === "expanded" ? (
+              <img 
+                src="/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png" 
+                alt="KixicoPay" 
+                className="h-10 w-auto"
+              />
+            ) : (
+              <img 
+                src="/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png" 
+                alt="KixicoPay" 
+                className="h-8 w-8 object-contain"
+              />
+            )}
+          </button>
+        </div>
+
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center gap-2">
             <Shield className="h-4 w-4 text-primary" />
