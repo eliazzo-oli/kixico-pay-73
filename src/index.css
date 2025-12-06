@@ -147,34 +147,68 @@ Plus Jakarta Sans typography with compact mobile-first design
   }
 
   body {
-    @apply bg-background text-foreground text-sm;
+    @apply bg-background text-foreground;
+    font-size: 13px;
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  /* Responsive typography - compact on mobile */
+  /* Mobile-first compact typography */
   h1 {
-    @apply text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl;
+    @apply text-xl font-bold tracking-tight;
   }
 
   h2 {
-    @apply text-xl font-semibold tracking-tight md:text-2xl lg:text-3xl;
+    @apply text-lg font-semibold tracking-tight;
   }
 
   h3 {
-    @apply text-lg font-semibold md:text-xl;
+    @apply text-base font-semibold;
   }
 
   h4 {
-    @apply text-base font-medium md:text-lg;
+    @apply text-sm font-medium;
   }
 
-  /* Compact spacing utilities */
+  /* Desktop typography */
+  @media (min-width: 768px) {
+    body {
+      font-size: 14px;
+    }
+
+    h1 {
+      @apply text-3xl;
+    }
+
+    h2 {
+      @apply text-2xl;
+    }
+
+    h3 {
+      @apply text-xl;
+    }
+
+    h4 {
+      @apply text-lg;
+    }
+  }
+
+  /* Compact spacing utilities for mobile */
   .space-compact {
-    @apply gap-3 md:gap-4 lg:gap-6;
+    @apply gap-2;
   }
 
   .p-compact {
-    @apply p-3 md:p-4 lg:p-6;
+    @apply p-3;
+  }
+
+  @media (min-width: 768px) {
+    .space-compact {
+      @apply gap-4;
+    }
+
+    .p-compact {
+      @apply p-6;
+    }
   }
 
   /* Proteção de imagens */
@@ -249,5 +283,35 @@ Plus Jakarta Sans typography with compact mobile-first design
 
   .image-float {
     animation: gentle-float 4s ease-in-out infinite;
+  }
+}
+
+/* Mobile-specific compact styles */
+@layer utilities {
+  /* Mobile card styles */
+  .card-mobile {
+    @apply p-3;
+  }
+
+  @media (min-width: 768px) {
+    .card-mobile {
+      @apply p-6;
+    }
+  }
+
+  /* Mobile transaction list item */
+  .transaction-item {
+    @apply flex items-center justify-between p-3 border-b border-border/50 last:border-b-0;
+  }
+
+  /* Mobile stats grid */
+  .stats-grid-mobile {
+    @apply grid grid-cols-2 gap-2;
+  }
+
+  @media (min-width: 768px) {
+    .stats-grid-mobile {
+      @apply grid-cols-4 gap-4;
+    }
   }
 }
