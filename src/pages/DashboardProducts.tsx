@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plus, Edit2, Trash2, Search, Package, TrendingUp, ArrowLeft, Share2, Copy, Eye } from 'lucide-react';
 import { MobileProductList } from '@/components/MobileProductList';
+import { ShareProductModal } from '@/components/ShareProductModal';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { usePlan } from '@/hooks/usePlan';
@@ -105,6 +106,8 @@ export default function DashboardProducts() {
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [sharingProduct, setSharingProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [editingPaymentMethods, setEditingPaymentMethods] = useState<string[]>([]);
   
@@ -419,24 +422,9 @@ export default function DashboardProducts() {
     return new Date(dateString).toLocaleDateString('pt-AO');
   };
 
-  const handleCopyProductLink = async (productId: string, productName: string) => {
-    const baseUrl = window.location.origin;
-    const productLink = `${baseUrl}/checkout?id=${productId}`;
-    
-    try {
-      await navigator.clipboard.writeText(productLink);
-      toast({
-        title: "Link copiado!",
-        description: `Link do produto "${productName}" copiado para a área de transferência.`,
-      });
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível copiar o link. Tente novamente.",
-        variant: 'destructive',
-      });
-    }
+  const handleOpenShareModal = (product: Product) => {
+    setSharingProduct(product);
+    setIsShareModalOpen(true);
   };
 
   const handleViewProduct = (product: Product) => {
@@ -584,7 +572,6 @@ export default function DashboardProducts() {
                         onToggleStatus={handleToggleStatus}
                         onEdit={handleEditProduct}
                         onView={handleViewProduct}
-                        onCopyLink={handleCopyProductLink}
                         onDelete={handleDeleteProduct}
                         formatPrice={formatPrice}
                       />
@@ -641,7 +628,7 @@ export default function DashboardProducts() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleCopyProductLink(product.id, product.name)}
+                                onClick={() => handleOpenShareModal(product)}
                                 className="text-primary hover:text-primary"
                               >
                                 <Share2 className="h-4 w-4" />
@@ -1184,9 +1171,9 @@ export default function DashboardProducts() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleCopyProductLink(viewingProduct.id, viewingProduct.name)}
+                          onClick={() => handleOpenShareModal(viewingProduct)}
                         >
-                          <Copy className="h-4 w-4" />
+                          <Share2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -1214,6 +1201,16 @@ export default function DashboardProducts() {
                 )}
               </DialogContent>
             </Dialog>
+
+            {/* Share Product Modal */}
+            {sharingProduct && (
+              <ShareProductModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                productId={sharingProduct.id}
+                productName={sharingProduct.name}
+              />
+            )}
           </div>
         </main>
       </div>
