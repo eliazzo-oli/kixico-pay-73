@@ -414,101 +414,101 @@ export default function DashboardMetrics() {
                 </div>
               </div>
 
-              {/* KPI Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
-                <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
+              {/* KPI Cards - Grid 2 cols on mobile */}
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4 lg:gap-6">
+                <Card className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                    <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
                       Receita Total
                     </CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <DollarSign className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl lg:text-3xl font-bold text-foreground">
+                    <div className="text-base md:text-2xl lg:text-3xl font-bold text-foreground">
                       {stats.totalRevenue.toLocaleString('pt-AO')} AOA
                     </div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      No período selecionado
+                    <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
+                      No período
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Total de Vendas
+                <Card className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                    <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                      Vendas
                     </CardTitle>
-                    <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                    <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl lg:text-3xl font-bold text-foreground">{stats.totalSales}</div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      Vendas completadas
+                    <div className="text-lg md:text-2xl lg:text-3xl font-bold text-foreground">{stats.totalSales}</div>
+                    <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
+                      Completadas
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Taxa de Conversão
+                <Card className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                    <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                      Conversão
                     </CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl lg:text-3xl font-bold text-foreground">
+                    <div className="text-lg md:text-2xl lg:text-3xl font-bold text-foreground">
                       {stats.conversionRate.toFixed(1)}%
                     </div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      Vendas vs tentativas
+                    <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
+                      Taxa
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                <Card className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                    <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
                       Ticket Médio
                     </CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <DollarSign className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl lg:text-3xl font-bold text-foreground">
-                      {stats.averageTicket.toLocaleString('pt-AO')} AOA
+                    <div className="text-base md:text-2xl lg:text-3xl font-bold text-foreground">
+                      {stats.averageTicket.toLocaleString('pt-AO')}
                     </div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      Valor médio por venda
+                    <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
+                      AOA/venda
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Clientes Ativos
+                <Card className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                    <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                      Clientes
                     </CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <Users className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl lg:text-3xl font-bold text-foreground">{stats.activeCustomers}</div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
-                      Clientes únicos
+                    <div className="text-lg md:text-2xl lg:text-3xl font-bold text-foreground">{stats.activeCustomers}</div>
+                    <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
+                      Únicos
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Produto Top
+                <Card className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                    <CardTitle className="text-[10px] md:text-sm font-medium text-muted-foreground">
+                      Top Produto
                     </CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm font-bold text-foreground truncate" title={stats.topSellingProduct}>
+                    <div className="text-xs md:text-sm font-bold text-foreground truncate" title={stats.topSellingProduct}>
                       {stats.topSellingProduct}
                     </div>
-                    <p className="text-xs text-muted-foreground flex items-center mt-1">
+                    <p className="text-[9px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
                       Mais vendido
                     </p>
                   </CardContent>
