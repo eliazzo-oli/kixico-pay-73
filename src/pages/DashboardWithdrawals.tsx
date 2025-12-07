@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Home } from 'lucide-react';
+import { MobileWithdrawalList } from '@/components/MobileWithdrawalList';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { TrialBanner } from '@/components/TrialBanner';
@@ -272,52 +273,52 @@ export default function DashboardWithdrawals() {
               </Button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+            {/* Stats Cards - Grid 2 cols on mobile */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+              <Card className="border-border/50 col-span-2 md:col-span-1">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                     Saldo Disponível
                   </CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <DollarSign className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-xl md:text-2xl font-bold text-foreground">
                     {formatPrice(availableBalance)}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
                     Disponível para saque
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                     Total Sacado
                   </CardTitle>
-                  <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                  <CheckCircle className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-lg md:text-2xl font-bold text-foreground">
                     {formatPrice(totalWithdrawn)}
                   </div>
-                  <p className="text-xs text-success mt-1">
-                    Saques aprovados
+                  <p className="text-[10px] md:text-xs text-success mt-0.5 md:mt-1">
+                    Aprovados
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Saques Pendentes
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
+                    Pendentes
                   </CardTitle>
-                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">{pendingWithdrawals}</div>
-                  <p className="text-xs text-warning mt-1">
+                  <div className="text-lg md:text-2xl font-bold text-foreground">{pendingWithdrawals}</div>
+                  <p className="text-[10px] md:text-xs text-warning mt-0.5 md:mt-1">
                     Em processamento
                   </p>
                 </CardContent>
@@ -393,35 +394,49 @@ export default function DashboardWithdrawals() {
                     <p className="text-sm mt-2">Faça sua primeira solicitação de saque acima.</p>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Valor Solicitado</TableHead>
-                        <TableHead>Data da Solicitação</TableHead>
-                        <TableHead>Última Atualização</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {withdrawals.map((withdrawal) => (
-                        <TableRow key={withdrawal.id}>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              {getStatusIcon(withdrawal.status)}
-                              <Badge variant={getStatusVariant(withdrawal.status)}>
-                                {getStatusText(withdrawal.status)}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-semibold">
-                            {formatPrice(Number(withdrawal.amount) * 100)}
-                          </TableCell>
-                          <TableCell>{formatDate(withdrawal.created_at)}</TableCell>
-                          <TableCell>{formatDate(withdrawal.updated_at)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <>
+                    {/* Mobile: Card List */}
+                    <div className="md:hidden">
+                      <MobileWithdrawalList
+                        withdrawals={withdrawals}
+                        formatPrice={formatPrice}
+                        formatDate={formatDate}
+                      />
+                    </div>
+                    
+                    {/* Desktop: Table */}
+                    <div className="hidden md:block">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Valor Solicitado</TableHead>
+                            <TableHead>Data da Solicitação</TableHead>
+                            <TableHead>Última Atualização</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {withdrawals.map((withdrawal) => (
+                            <TableRow key={withdrawal.id}>
+                              <TableCell>
+                                <div className="flex items-center space-x-2">
+                                  {getStatusIcon(withdrawal.status)}
+                                  <Badge variant={getStatusVariant(withdrawal.status)}>
+                                    {getStatusText(withdrawal.status)}
+                                  </Badge>
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-semibold">
+                                {formatPrice(Number(withdrawal.amount) * 100)}
+                              </TableCell>
+                              <TableCell>{formatDate(withdrawal.created_at)}</TableCell>
+                              <TableCell>{formatDate(withdrawal.updated_at)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>

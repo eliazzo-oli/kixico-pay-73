@@ -35,6 +35,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Plus, Edit2, Trash2, Search, Package, TrendingUp, ArrowLeft, Share2, Copy, Eye } from 'lucide-react';
+import { MobileProductList } from '@/components/MobileProductList';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { usePlan } from '@/hooks/usePlan';
@@ -473,66 +474,66 @@ export default function DashboardProducts() {
               </Button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Stats Cards - Grid 2 cols on mobile */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <Card className="border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Total de Produtos
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
+                    Total Produtos
                   </CardTitle>
-                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <Package className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">{totalProducts}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <div className="text-lg md:text-2xl font-bold text-foreground">{totalProducts}</div>
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
                     {activeProducts} ativos
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Produtos Ativos
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
+                    Ativos
                   </CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">{activeProducts}</div>
-                  <p className="text-xs text-success mt-1">
-                    {((activeProducts / totalProducts) * 100).toFixed(0)}% do total
+                  <div className="text-lg md:text-2xl font-bold text-foreground">{activeProducts}</div>
+                  <p className="text-[10px] md:text-xs text-success mt-0.5 md:mt-1">
+                    {totalProducts > 0 ? ((activeProducts / totalProducts) * 100).toFixed(0) : 0}%
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Total de Vendas
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
+                    Vendas
                   </CardTitle>
-                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <Package className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">{totalSales}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Todas as vendas
+                  <div className="text-lg md:text-2xl font-bold text-foreground">{totalSales}</div>
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">
+                    Total
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Receita Total
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
+                    Receita
                   </CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-lg md:text-2xl font-bold text-foreground">
                     {formatPrice(totalRevenue)}
                   </div>
-                  <p className="text-xs text-success mt-1">
-                    Todos os produtos
+                  <p className="text-[10px] md:text-xs text-success mt-0.5 md:mt-1">
+                    Total
                   </p>
                 </CardContent>
               </Card>
@@ -562,37 +563,49 @@ export default function DashboardProducts() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome do Produto</TableHead>
-                      <TableHead>Preço</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Vendas</TableHead>
-                      <TableHead>Receita</TableHead>
-                      <TableHead>Data de Criação</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                   <TableBody>
-                     {filteredProducts.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8">
-                           <div className="flex flex-col items-center gap-4">
-                             <Package className="h-12 w-12 text-muted-foreground" />
-                             <div>
-                               <p className="text-muted-foreground text-lg">Você ainda não tem produtos cadastrados</p>
-                               <p className="text-muted-foreground text-sm mt-1">Comece criando seu primeiro produto para vender online</p>
-                             </div>
-                             <Button onClick={handleCreateProduct} className="mt-2">
-                               <Plus className="h-4 w-4 mr-2" />
-                               Criar Primeiro Produto
-                             </Button>
-                           </div>
-                         </TableCell>
-                       </TableRow>
-                     ) : (
-                       filteredProducts.map((product) => (
+                {filteredProducts.length === 0 ? (
+                  <div className="flex flex-col items-center gap-4 py-8">
+                    <Package className="h-12 w-12 text-muted-foreground" />
+                    <div className="text-center">
+                      <p className="text-muted-foreground text-lg">Você ainda não tem produtos cadastrados</p>
+                      <p className="text-muted-foreground text-sm mt-1">Comece criando seu primeiro produto para vender online</p>
+                    </div>
+                    <Button onClick={handleCreateProduct} className="mt-2">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Primeiro Produto
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Mobile: Card List */}
+                    <div className="md:hidden">
+                      <MobileProductList
+                        products={filteredProducts}
+                        onToggleStatus={handleToggleStatus}
+                        onEdit={handleEditProduct}
+                        onView={handleViewProduct}
+                        onCopyLink={handleCopyProductLink}
+                        onDelete={handleDeleteProduct}
+                        formatPrice={formatPrice}
+                      />
+                    </div>
+                    
+                    {/* Desktop: Table */}
+                    <div className="hidden md:block">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Nome do Produto</TableHead>
+                            <TableHead>Preço</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Vendas</TableHead>
+                            <TableHead>Receita</TableHead>
+                            <TableHead>Data de Criação</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredProducts.map((product) => (
                       <TableRow key={product.id}>
                         <TableCell className="font-medium">
                           <div>
@@ -1097,13 +1110,14 @@ export default function DashboardProducts() {
                           </div>
                         </TableCell>
                       </TableRow>
-                     )))
-                     }
-                   </TableBody>
-                </Table>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
-
             {/* Product View Dialog */}
             <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
               <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">

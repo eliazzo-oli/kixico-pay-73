@@ -534,32 +534,40 @@ export default function Checkout() {
 
   return (
     <div 
-      className="min-h-screen"
+      className="min-h-screen flex flex-col"
       style={{ backgroundColor }}
     >
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-1 container mx-auto px-4 py-6 md:py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            {/* Logo KixicoPay */}
-            {showKixicoPayLogo && (
-              <div className="mb-6">
-                <img 
-                  src="/lovable-uploads/22ff7c61-cfa1-40d4-a028-a25cba4d4616.png" 
-                  alt="KixicoPay Logo" 
-                  className="mx-auto h-[240px] w-auto object-contain logo-animated optimized-image"
+          <div className="text-center mb-6 md:mb-8">
+            {/* Product Image if available */}
+            {product.image_url && (
+              <div className="mb-4">
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className="mx-auto h-20 w-20 md:h-24 md:w-24 object-cover rounded-xl"
                   loading="eager"
-                  decoding="async"
+                  width="96"
+                  height="96"
                 />
               </div>
             )}
             
-            <h1 className="text-3xl font-bold" style={{ color: textColor }}>
+            <h1 className="text-2xl md:text-3xl font-bold" style={{ color: textColor }}>
               Finalizar Compra
             </h1>
-            <p style={{ color: textColor, opacity: 0.7 }}>
+            <p className="text-sm md:text-base" style={{ color: textColor, opacity: 0.7 }}>
               Conclua sua compra de forma segura
             </p>
           </div>
+          
+          {/* Timer de Escassez */}
+          {timerEnabled && (
+            <div className="mb-4 md:mb-6">
+              <CheckoutTimer textColor={textColor} buttonColor={buttonColor} />
+            </div>
+          )}
           
           {/* Timer de Escassez */}
           {timerEnabled && (
@@ -581,6 +589,9 @@ export default function Checkout() {
                       src={product.image_url}
                       alt={product.name}
                       className="max-w-full h-auto object-contain rounded-lg"
+                      loading="lazy"
+                      width="400"
+                      height="300"
                     />
                   )}
                   <div>
@@ -697,7 +708,10 @@ export default function Checkout() {
                             <img 
                               src={method.logo} 
                               alt={method.name}
-                              className="h-16 w-auto object-contain"
+                              className="h-10 md:h-16 w-auto object-contain"
+                              loading="lazy"
+                              width="64"
+                              height="64"
                             />
                           </div>
                           <div className="flex-1">
@@ -819,7 +833,10 @@ export default function Checkout() {
                               <img 
                                 src={orderBumpProduct.image_url} 
                                 alt={orderBumpProduct.name}
-                                className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                                className="w-16 h-16 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0"
+                                loading="lazy"
+                                width="96"
+                                height="96"
                               />
                             )}
                             <div className="flex-1">
@@ -863,7 +880,7 @@ export default function Checkout() {
                 <Button
                   onClick={handlePayment}
                   size="lg"
-                  className="w-full h-14 text-lg font-semibold shadow-glow"
+                  className="w-full h-12 md:h-14 text-base md:text-lg font-semibold"
                   style={{ 
                     backgroundColor: buttonColor,
                     color: '#ffffff'
@@ -873,7 +890,7 @@ export default function Checkout() {
                   {isProcessing ? 'Processando...' : 'Pagar Agora'}
                 </Button>
 
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-[10px] md:text-xs text-muted-foreground text-center">
                   Ao finalizar a compra, você concorda com nossos termos de serviço.
                   Seus dados estão protegidos e seguros.
                 </p>
@@ -882,6 +899,25 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+      
+      {/* Footer with KixicoPay Logo */}
+      {showKixicoPayLogo && (
+        <footer className="py-6 border-t border-border/30" style={{ backgroundColor }}>
+          <div className="container mx-auto px-4 text-center">
+            <p className="text-xs mb-2" style={{ color: textColor, opacity: 0.5 }}>
+              Processado por
+            </p>
+            <img 
+              src="/lovable-uploads/22ff7c61-cfa1-40d4-a028-a25cba4d4616.png" 
+              alt="KixicoPay" 
+              className="mx-auto h-12 md:h-16 w-auto object-contain opacity-70"
+              loading="lazy"
+              width="80"
+              height="64"
+            />
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
