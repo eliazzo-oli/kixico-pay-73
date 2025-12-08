@@ -335,13 +335,15 @@ export default function NewProduct() {
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <option value="">Selecione uma categoria</option>
-                        <option value="Curso Online">Curso Online</option>
-                        <option value="Ebook">Ebook</option>
-                        <option value="Mentoria">Mentoria</option>
-                        <option value="Evento">Evento</option>
-                        <option value="Serviço">Serviço</option>
-                        <option value="Software">Software</option>
-                        <option value="Outro">Outro</option>
+                        <option value="Marketing Digital">Marketing Digital</option>
+                        <option value="Saúde e Bem-estar">Saúde e Bem-estar</option>
+                        <option value="Desenvolvimento Pessoal">Desenvolvimento Pessoal</option>
+                        <option value="Negócios e Carreira">Negócios e Carreira</option>
+                        <option value="Design e Fotografia">Design e Fotografia</option>
+                        <option value="Finanças e Investimentos">Finanças e Investimentos</option>
+                        <option value="Espiritualidade">Espiritualidade</option>
+                        <option value="Tecnologia e Programação">Tecnologia e Programação</option>
+                        <option value="Outros">Outros</option>
                       </select>
                     </div>
 

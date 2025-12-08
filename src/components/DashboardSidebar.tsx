@@ -1,4 +1,4 @@
-import { BarChart3, CreditCard, Package, TrendingUp, Home, DollarSign, User, Settings, X } from 'lucide-react';
+import { BarChart3, CreditCard, Package, TrendingUp, Home, DollarSign, Wallet, Users, RotateCcw, Grid3X3, Settings, X } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Sidebar,
@@ -39,9 +39,29 @@ const navigationItems = [
     icon: DollarSign,
   },
   {
-    title: 'Planos e Assinatura',
-    url: '/plans-management',
+    title: 'Carteira',
+    url: '/configuracoes/carteira',
+    icon: Wallet,
+  },
+  {
+    title: 'Dados Financeiros',
+    url: '/configuracoes/financeiro',
     icon: CreditCard,
+  },
+  {
+    title: 'Área de Membros',
+    url: '/area-membros',
+    icon: Users,
+  },
+  {
+    title: 'Reembolsos',
+    url: '/reembolsos',
+    icon: RotateCcw,
+  },
+  {
+    title: 'Apps & Integrações',
+    url: '/apps',
+    icon: Grid3X3,
   },
 ];
 
