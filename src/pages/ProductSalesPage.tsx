@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
-import { ShoppingCart, Shield, CheckCircle, Tag, ArrowLeft } from 'lucide-react';
+import { ShoppingCart, Shield, CheckCircle, Tag, ArrowLeft, Zap, Mail, Lock } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -21,6 +22,7 @@ interface SellerProfile {
   name: string;
   kyc_status: string | null;
   fantasy_name: string | null;
+  avatar_url: string | null;
 }
 
 export default function ProductSalesPage() {
@@ -59,7 +61,7 @@ export default function ProductSalesPage() {
       // Fetch seller profile
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('name, kyc_status, fantasy_name')
+        .select('name, kyc_status, fantasy_name, avatar_url')
         .eq('user_id', productData.user_id)
         .single();
 
@@ -83,6 +85,15 @@ export default function ProductSalesPage() {
 
   const handleBuyNow = () => {
     navigate(`/checkout?id=${productId}`);
+  };
+
+  const getSellerInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
   };
 
   if (isLoading) {
@@ -172,28 +183,69 @@ export default function ProductSalesPage() {
             <span className="text-muted-foreground text-sm">{product.currency}</span>
           </div>
 
-          {/* Description */}
+          {/* Description - Enhanced with better width and line breaks */}
           {product.description && (
-            <div className="prose prose-sm md:prose-base max-w-none">
-              <p className="text-foreground/80 leading-relaxed whitespace-pre-line">
+            <div className="w-full max-w-3xl">
+              <p className="text-foreground/80 leading-relaxed whitespace-pre-line text-base md:text-lg">
                 {product.description}
               </p>
             </div>
           )}
 
-          {/* Trust Badges */}
-          <div className="flex flex-wrap gap-3 pt-4 border-t border-border/50">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4 text-primary" />
-              <span>Pagamento Seguro</span>
+          {/* Trust Badges - Guarantees Section */}
+          <div className="grid grid-cols-3 gap-3 pt-6 border-t border-border/50">
+            <div className="flex flex-col items-center gap-2 p-3 md:p-4 rounded-xl bg-muted/50">
+              <Lock className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+              <span className="text-xs md:text-sm text-center text-muted-foreground font-medium">
+                Pagamento Seguro
+              </span>
             </div>
-            {isSellerVerified && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Vendedor Verificado</span>
-              </div>
-            )}
+            <div className="flex flex-col items-center gap-2 p-3 md:p-4 rounded-xl bg-muted/50">
+              <Zap className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+              <span className="text-xs md:text-sm text-center text-muted-foreground font-medium">
+                Entrega Imediata
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-3 md:p-4 rounded-xl bg-muted/50">
+              <Mail className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+              <span className="text-xs md:text-sm text-center text-muted-foreground font-medium">
+                Suporte via E-mail
+              </span>
+            </div>
           </div>
+
+          {/* About the Seller Section */}
+          {seller && (
+            <div className="pt-6 border-t border-border/50">
+              <h3 className="text-sm font-medium text-muted-foreground mb-4">Vendido por</h3>
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border/50">
+                <Avatar className="h-12 w-12 md:h-14 md:w-14">
+                  {seller.avatar_url ? (
+                    <AvatarImage src={seller.avatar_url} alt={sellerDisplayName} />
+                  ) : null}
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {getSellerInitials(sellerDisplayName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-foreground">{sellerDisplayName}</span>
+                    {isSellerVerified && (
+                      <Badge variant="secondary" className="text-[10px] gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Verificado
+                      </Badge>
+                    )}
+                  </div>
+                  {isSellerVerified && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Identidade verificada pela KixicoPay
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
@@ -202,7 +254,7 @@ export default function ProductSalesPage() {
         <div className="max-w-4xl mx-auto">
           <Button 
             onClick={handleBuyNow}
-            size="xl"
+            size="lg"
             className="w-full h-12 md:h-14 text-base md:text-lg font-semibold shadow-lg"
           >
             <ShoppingCart className="h-5 w-5 mr-2" />
