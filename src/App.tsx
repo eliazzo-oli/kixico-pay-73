@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ProtectedAdminRoute } from "@/components/ProtectedAdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useImageProtection } from "@/hooks/useImageProtection";
+import { KixiAI } from "@/components/KixiAI";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -53,6 +54,9 @@ import Security from "./pages/settings/Security";
 import TwoFactorVerify from "./pages/TwoFactorVerify";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Apps from "./pages/Apps";
+import MembersArea from "./pages/MembersArea";
+import Refunds from "./pages/Refunds";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +121,21 @@ const App = () => {
               <Route path="/plans-management" element={
                 <ProtectedRoute>
                   <PlansManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/apps" element={
+                <ProtectedRoute>
+                  <Apps />
+                </ProtectedRoute>
+              } />
+              <Route path="/area-membros" element={
+                <ProtectedRoute>
+                  <MembersArea />
+                </ProtectedRoute>
+              } />
+              <Route path="/reembolsos" element={
+                <ProtectedRoute>
+                  <Refunds />
                 </ProtectedRoute>
               } />
               <Route path="/products/new" element={
@@ -199,6 +218,7 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <KixiAI />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
