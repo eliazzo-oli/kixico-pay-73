@@ -67,6 +67,7 @@ export default function Checkout() {
   // Order Bump states
   const [orderBumpAccepted, setOrderBumpAccepted] = useState(false);
   const [orderBumpProduct, setOrderBumpProduct] = useState<{ name: string; description: string; image_url?: string } | null>(null);
+  const [sellerName, setSellerName] = useState<string>('o Vendedor');
   
   // Coupon states
   const [showCouponField, setShowCouponField] = useState(false);
@@ -93,6 +94,28 @@ export default function Checkout() {
       fetchOrderBumpProduct();
     }
   }, [product?.order_bump_product_id]);
+
+  useEffect(() => {
+    const fetchSellerName = async () => {
+      if (!product?.user_id || product.user_id === 'plan') return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('name, fantasy_name')
+          .eq('user_id', product.user_id)
+          .maybeSingle();
+
+        if (!error && data) {
+          setSellerName(data.fantasy_name || data.name || 'o Vendedor');
+        }
+      } catch (error) {
+        console.error('Error fetching seller name:', error);
+      }
+    };
+
+    fetchSellerName();
+  }, [product?.user_id]);
 
   const fetchOrderBumpProduct = async () => {
     if (!product?.order_bump_product_id) return;
@@ -539,21 +562,7 @@ export default function Checkout() {
     >
       <div className="flex-1 container mx-auto px-4 py-6 md:py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-6 md:mb-8">
-            {/* Product Image if available */}
-            {product.image_url && (
-              <div className="mb-4">
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="mx-auto h-20 w-20 md:h-24 md:w-24 object-cover rounded-xl"
-                  loading="eager"
-                  width="96"
-                  height="96"
-                />
-              </div>
-            )}
-            
+        <div className="text-center mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl font-bold" style={{ color: textColor }}>
               Finalizar Compra
             </h1>
@@ -900,24 +909,49 @@ export default function Checkout() {
         </div>
       </div>
       
-      {/* Footer with KixicoPay Logo */}
-      {showKixicoPayLogo && (
-        <footer className="py-6 border-t border-border/30" style={{ backgroundColor }}>
-          <div className="container mx-auto px-4 text-center">
-            <p className="text-xs mb-2" style={{ color: textColor, opacity: 0.5 }}>
-              Processado por
-            </p>
-            <img 
-              src="/lovable-uploads/22ff7c61-cfa1-40d4-a028-a25cba4d4616.png" 
-              alt="KixicoPay" 
-              className="mx-auto h-12 md:h-16 w-auto object-contain opacity-70"
-              loading="lazy"
-              width="80"
-              height="64"
-            />
-          </div>
-        </footer>
-      )}
+      {/* Footer with KixicoPay Logo and Legal Text */}
+      <footer className="py-6 border-t border-border/30" style={{ backgroundColor }}>
+        <div className="container mx-auto px-4 text-center">
+          {showKixicoPayLogo && (
+            <>
+              <p className="text-xs mb-2" style={{ color: textColor, opacity: 0.5 }}>
+                Processado por
+              </p>
+              <img 
+                src="/lovable-uploads/22ff7c61-cfa1-40d4-a028-a25cba4d4616.png" 
+                alt="KixicoPay" 
+                className="mx-auto h-12 md:h-16 w-auto object-contain opacity-70 mb-4"
+                loading="lazy"
+                width="80"
+                height="64"
+              />
+            </>
+          )}
+          
+          <p className="text-[10px] max-w-xl mx-auto" style={{ color: textColor, opacity: 0.4 }}>
+            Ao finalizar esta compra, você reconhece que a KixicoPay atua exclusivamente como processadora de pagamentos em nome de {sellerName} e não assume responsabilidade pelo conteúdo, entrega ou oferta deste produto. Ao continuar, você concorda com os nossos{' '}
+            <a 
+              href="/termos-de-uso" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="underline hover:opacity-80"
+              style={{ color: textColor }}
+            >
+              Termos de Uso
+            </a>{' '}
+            e{' '}
+            <a 
+              href="/politica-de-privacidade" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="underline hover:opacity-80"
+              style={{ color: textColor }}
+            >
+              Política de Privacidade
+            </a>.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
