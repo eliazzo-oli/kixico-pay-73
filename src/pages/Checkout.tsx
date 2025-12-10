@@ -484,19 +484,19 @@ export default function Checkout() {
     {
       id: 'reference',
       name: 'Pagamento por Referência',
-      logo: '/assets/express.png',
+      logo: '/assets/multicaixa-referencia.png',
       description: 'Pague com referência bancária',
     },
     {
       id: 'multicaixa',
       name: 'Multicaixa Express',
-      logo: '/assets/multicaixa.png',
+      logo: '/assets/multicaixa-express.png',
       description: 'Pagamento via Multicaixa',
     },
     {
       id: 'paypal_ao',
       name: 'PayPay Afri',
-      logo: '/assets/paypay_afri.png',
+      logo: '/assets/paypay-afri.png',
       description: 'PayPay África',
     },
   ];
@@ -555,11 +555,24 @@ export default function Checkout() {
   const timerEnabled = product?.checkout_timer_enabled || false;
   const showKixicoPayLogo = product?.checkout_show_kixicopay_logo !== false;
 
+  // Primary color for secure bar (product button color or brand purple)
+  const secureBannerColor = product?.checkout_button_color || '#9333ea';
+
   return (
     <div 
       className="min-h-screen flex flex-col"
       style={{ backgroundColor }}
     >
+      {/* Barra de Compra Segura */}
+      <div 
+        className="py-3 text-center"
+        style={{ backgroundColor: secureBannerColor }}
+      >
+        <p className="text-white text-sm font-medium flex items-center justify-center gap-2">
+          🔒 Compra 100% Segura
+        </p>
+      </div>
+
       <div className="flex-1 container mx-auto px-4 py-6 md:py-8">
         <div className="max-w-4xl mx-auto">
         <div className="text-center mb-6 md:mb-8">
@@ -577,13 +590,6 @@ export default function Checkout() {
               <CheckoutTimer textColor={textColor} buttonColor={buttonColor} />
             </div>
           )}
-          
-          {/* Timer de Escassez */}
-          {timerEnabled && (
-            <div className="mb-6">
-              <CheckoutTimer textColor={textColor} buttonColor={buttonColor} />
-            </div>
-          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Product Details */}
@@ -597,10 +603,10 @@ export default function Checkout() {
                     <img
                       src={product.image_url}
                       alt={product.name}
-                      className="max-w-full h-auto object-contain rounded-lg"
+                      className="w-full max-h-48 md:max-h-64 object-cover rounded-lg"
                       loading="lazy"
                       width="400"
-                      height="300"
+                      height="200"
                     />
                   )}
                   <div>
@@ -701,38 +707,39 @@ export default function Checkout() {
                 <div className="space-y-4">
                   <h4 className="font-medium text-foreground">Método de Pagamento</h4>
                   
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
                     {paymentMethods.map((method) => (
-                      <div
+                      <button
                         key={method.id}
-                        className="border-2 rounded-xl p-6 cursor-pointer transition-all duration-300"
+                        type="button"
+                        className="border-2 rounded-xl p-3 md:p-4 cursor-pointer transition-all duration-300 text-left"
                         style={{
                           borderColor: selectedPaymentMethod === method.id ? buttonColor : 'hsl(var(--border))',
                           backgroundColor: selectedPaymentMethod === method.id ? `${buttonColor}15` : 'transparent',
                         }}
                         onClick={() => setSelectedPaymentMethod(method.id)}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
                           <div className="flex-shrink-0">
                             <img 
                               src={method.logo} 
                               alt={method.name}
-                              className="h-10 md:h-16 w-auto object-contain"
+                              className="h-10 w-10 md:h-12 md:w-auto object-contain rounded-lg"
                               loading="lazy"
-                              width="64"
-                              height="64"
+                              width="48"
+                              height="48"
                             />
                           </div>
-                          <div className="flex-1">
-                            <h5 className="font-medium text-foreground text-lg">
+                          <div className="flex-1 text-center md:text-left">
+                            <h5 className="font-medium text-foreground text-xs md:text-base">
                               {method.name}
                             </h5>
-                            <p className="text-muted-foreground text-sm mt-1">
+                            <p className="text-muted-foreground text-[10px] md:text-sm hidden md:block">
                               {method.description}
                             </p>
                           </div>
                           {selectedPaymentMethod === method.id && (
-                            <div className="flex-shrink-0">
+                            <div className="flex-shrink-0 hidden md:block">
                               <div 
                                 className="w-6 h-6 rounded-full flex items-center justify-center"
                                 style={{ backgroundColor: buttonColor }}
@@ -742,7 +749,7 @@ export default function Checkout() {
                             </div>
                           )}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                   
@@ -910,20 +917,20 @@ export default function Checkout() {
       </div>
       
       {/* Footer with KixicoPay Logo and Legal Text */}
-      <footer className="py-6 border-t border-border/30" style={{ backgroundColor }}>
+      <footer className="py-8 border-t border-border/30" style={{ backgroundColor }}>
         <div className="container mx-auto px-4 text-center">
           {showKixicoPayLogo && (
             <>
-              <p className="text-xs mb-2" style={{ color: textColor, opacity: 0.5 }}>
+              <p className="text-xs mb-3" style={{ color: textColor, opacity: 0.5 }}>
                 Processado por
               </p>
               <img 
-                src="/lovable-uploads/22ff7c61-cfa1-40d4-a028-a25cba4d4616.png" 
+                src="/assets/logo-vertical.png" 
                 alt="KixicoPay" 
-                className="mx-auto h-12 md:h-16 w-auto object-contain opacity-70 mb-4"
+                className="mx-auto h-24 md:h-32 w-auto object-contain mb-6"
                 loading="lazy"
-                width="80"
-                height="64"
+                width="128"
+                height="128"
               />
             </>
           )}

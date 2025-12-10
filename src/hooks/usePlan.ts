@@ -4,8 +4,6 @@ import { useAuth } from './useAuth';
 import { useTrial } from './useTrial';
 
 
-export type PlanType = 'basico' | 'profissional' | 'empresarial';
-
 export interface PlanFeatures {
   maxProducts: number;
   hasAdvancedReports: boolean;
@@ -16,39 +14,59 @@ export interface PlanFeatures {
   hasAdvancedDashboard: boolean;
   hasCustomerInsights: boolean;
   hasPrioritySupport: boolean;
+  hasOrderBump: boolean;
   withdrawalTime: string;
   withdrawalFee: number;
   price: number;
 }
 
+export type PlanType = 'gratuito' | 'basico' | 'profissional' | 'empresarial';
+
 const planFeatures: Record<PlanType, PlanFeatures> = {
-  basico: {
-    maxProducts: 2,
+  gratuito: {
+    maxProducts: 1,
     hasAdvancedReports: false,
     hasApiAccess: false,
-    hasInstantWithdrawals: false,
+    hasInstantWithdrawals: true,
     hasAdvancedAnalytics: false,
     hasEnterpriseReports: false,
     hasAdvancedDashboard: false,
     hasCustomerInsights: false,
     hasPrioritySupport: false,
-    withdrawalTime: '24 horas',
+    hasOrderBump: false,
+    withdrawalTime: 'Instantâneo',
     withdrawalFee: 10,
-    price: 4900,
+    price: 0,
+  },
+  basico: {
+    maxProducts: 3,
+    hasAdvancedReports: false,
+    hasApiAccess: false,
+    hasInstantWithdrawals: true,
+    hasAdvancedAnalytics: false,
+    hasEnterpriseReports: false,
+    hasAdvancedDashboard: false,
+    hasCustomerInsights: false,
+    hasPrioritySupport: false,
+    hasOrderBump: true,
+    withdrawalTime: 'Instantâneo',
+    withdrawalFee: 7,
+    price: 4999,
   },
   profissional: {
-    maxProducts: 5,
+    maxProducts: Infinity,
     hasAdvancedReports: true,
     hasApiAccess: false,
-    hasInstantWithdrawals: false,
+    hasInstantWithdrawals: true,
     hasAdvancedAnalytics: true,
     hasEnterpriseReports: false,
     hasAdvancedDashboard: true,
     hasCustomerInsights: true,
     hasPrioritySupport: true,
-    withdrawalTime: '12 horas',
-    withdrawalFee: 5,
-    price: 14900,
+    hasOrderBump: true,
+    withdrawalTime: 'Instantâneo',
+    withdrawalFee: 3,
+    price: 14999,
   },
   empresarial: {
     maxProducts: Infinity,
@@ -60,9 +78,10 @@ const planFeatures: Record<PlanType, PlanFeatures> = {
     hasAdvancedDashboard: true,
     hasCustomerInsights: true,
     hasPrioritySupport: true,
+    hasOrderBump: true,
     withdrawalTime: 'Instantâneo',
     withdrawalFee: 0,
-    price: 49900,
+    price: 49999,
   },
 };
 
@@ -117,6 +136,8 @@ export function usePlan() {
 
   const getPlanDisplayName = (plan: PlanType): string => {
     switch (plan) {
+      case 'gratuito':
+        return 'Gratuito';
       case 'basico':
         return 'Básico';
       case 'profissional':
@@ -124,7 +145,7 @@ export function usePlan() {
       case 'empresarial':
         return 'Empresarial';
       default:
-        return 'Básico';
+        return 'Gratuito';
     }
   };
 

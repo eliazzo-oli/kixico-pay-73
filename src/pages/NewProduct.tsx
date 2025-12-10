@@ -535,9 +535,9 @@ export default function NewProduct() {
                         <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
                           <div className="flex items-center gap-3">
                             <img 
-                              src="/assets/express.png" 
+                              src="/assets/multicaixa-referencia.png" 
                               alt="Pagamento por Referência" 
-                              className="h-10 w-auto object-contain"
+                              className="h-10 w-10 object-contain rounded-lg"
                             />
                             <div>
                               <p className="font-medium text-foreground">Pagamento por Referência</p>
@@ -559,9 +559,9 @@ export default function NewProduct() {
                         <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
                           <div className="flex items-center gap-3">
                             <img 
-                              src="/assets/multicaixa.png" 
+                              src="/assets/multicaixa-express.png" 
                               alt="Multicaixa Express" 
-                              className="h-10 w-auto object-contain"
+                              className="h-10 w-10 object-contain rounded-lg"
                             />
                             <div>
                               <p className="font-medium text-foreground">Multicaixa Express</p>
@@ -583,9 +583,9 @@ export default function NewProduct() {
                         <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg">
                           <div className="flex items-center gap-3">
                             <img 
-                              src="/assets/paypay_afri.png" 
+                              src="/assets/paypay-afri.png" 
                               alt="PayPay Afri" 
-                              className="h-10 w-auto object-contain"
+                              className="h-10 w-10 object-contain rounded-lg"
                             />
                             <div>
                               <p className="font-medium text-foreground">PayPay Afri</p>

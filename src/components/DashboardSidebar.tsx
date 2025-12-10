@@ -90,7 +90,7 @@ export function DashboardSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarContent className="bg-sidebar border-r border-sidebar-border">
-        {/* Logo/Brand */}
+        {/* Logo/Brand - Horizontal */}
         <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
             <button 
@@ -99,15 +99,15 @@ export function DashboardSidebar() {
             >
               {sidebarState !== 'collapsed' ? (
                 <img 
-                  src="/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png" 
+                  src="/assets/logo-horizontal.png" 
                   alt="KixicoPay" 
-                  className="h-20 w-auto"
+                  className="h-12 w-auto"
                 />
               ) : (
                 <img 
-                  src="/lovable-uploads/aaa7ebd4-937a-41c9-ab8e-25102e62b1ed.png" 
+                  src="/assets/logo-horizontal.png" 
                   alt="KixicoPay" 
-                  className="h-10 w-10 object-contain"
+                  className="h-8 w-8 object-contain"
                 />
               )}
             </button>
