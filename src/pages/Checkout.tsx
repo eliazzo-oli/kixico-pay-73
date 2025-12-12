@@ -594,29 +594,50 @@ export default function Checkout() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Product Details */}
             <Card className="border-border/50 shadow-elegant">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-foreground">Resumo do Pedido</CardTitle>
+                {/* Entrega Instantânea Badge */}
+                <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">
+                  ⚡ Entrega Instantânea
+                </Badge>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {product.image_url && (
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-full max-h-48 md:max-h-64 object-cover rounded-lg"
-                      loading="lazy"
-                      width="400"
-                      height="200"
-                    />
-                  )}
-                  <div>
-                    <h3 className="text-xl font-semibold text-foreground">
-                      {product.name}
-                    </h3>
-                    <p className="text-muted-foreground mt-2">
+                  {/* Horizontal layout: image left, info right */}
+                  <div className="flex gap-4">
+                    {product.image_url && (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg flex-shrink-0"
+                        loading="lazy"
+                        width="128"
+                        height="128"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg md:text-xl font-semibold text-foreground line-clamp-2">
+                        {product.name}
+                      </h3>
+                      {/* Categoria do Produto */}
+                      {product.product_category && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {product.product_category}
+                        </p>
+                      )}
+                      {/* Vendido por */}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Vendido por: <span className="font-medium">{sellerName}</span>
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {product.description && (
+                    <p className="text-sm text-muted-foreground">
                       {product.description}
                     </p>
-                  </div>
+                  )}
+                  
                   {/* Applied Coupon Display */}
                   {appliedCoupon && (
                     <div className="pt-4 border-t border-border/50">
@@ -925,12 +946,12 @@ export default function Checkout() {
                 Processado por
               </p>
               <img 
-                src="/assets/logo-vertical.png" 
+                src="/lovable-uploads/0f5bf660-8c04-40db-bce3-5eeffc70c9d5.png" 
                 alt="KixicoPay" 
-                className="mx-auto h-24 md:h-32 w-auto object-contain mb-6"
+                className="mx-auto h-16 md:h-20 w-auto object-contain mb-6"
                 loading="lazy"
-                width="128"
-                height="128"
+                width="160"
+                height="80"
               />
             </>
           )}
