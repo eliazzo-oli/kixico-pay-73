@@ -30,7 +30,7 @@ export default function Header() {
             <img 
               src={kixicoPayLogo}
               alt="KixicoPay" 
-              className="h-8 md:h-10 w-auto logo-animated optimized-image"
+              className="h-10 md:h-12 w-auto logo-animated optimized-image"
               loading="eager"
               decoding="async"
             />

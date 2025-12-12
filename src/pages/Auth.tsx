@@ -89,7 +89,7 @@ export default function Auth() {
             <img 
               src={kixicoPayLogo}
               alt="KixicoPay" 
-              className="h-16 md:h-20 w-auto mx-auto logo-animated optimized-image"
+              className="h-24 md:h-32 w-auto mx-auto logo-animated optimized-image"
               loading="eager"
               decoding="async"
             />
