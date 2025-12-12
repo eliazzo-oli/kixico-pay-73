@@ -11,6 +11,12 @@ import { formatPriceFromDB } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import { CheckoutTimer } from '@/components/CheckoutTimer';
 import { usePixelTracking } from '@/hooks/usePixelTracking';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Product {
   id: string;
@@ -35,6 +41,83 @@ interface Product {
   product_category?: string | null;
   currency?: string | null;
 }
+
+type Language = 'pt' | 'en';
+
+const translations = {
+  pt: {
+    securePayment: 'COMPRA 100% SEGURA',
+    instantDelivery: 'Entrega imediata',
+    fullName: 'Nome completo',
+    fullNamePlaceholder: 'Digite seu nome completo',
+    email: 'E-mail',
+    emailPlaceholder: 'Digite seu e-mail para receber a compra',
+    phone: 'Telefone ou Whatsapp *',
+    payWith: 'Pagar com:',
+    selectPayment: 'Selecione a forma de pagamento desejada',
+    orderSummary: 'Resumo do pedido',
+    total: 'Total',
+    buyNow: 'COMPRAR AGORA',
+    processing: 'Processando...',
+    hasCoupon: 'Tem um cupão de desconto?',
+    couponPlaceholder: 'Digite o código do cupão',
+    apply: 'Aplicar',
+    remove: 'Remover',
+    coupon: 'Cupão',
+    specialOffer: '🎁 Oferta Especial!',
+    soldBy: 'Vendido por:',
+    processedBy: 'Processado por',
+    allRights: 'Todos os direitos reservados.',
+    legalText: 'Ao clicar em Comprar agora, eu declaro que li e concordo (1) com a KixicoPay está processando este pedido em nome de',
+    legalText2: 'não possui responsabilidade pelo conteúdo e/ou faz controle prévio deste (li) com os',
+    termsOfUse: 'Termos de uso',
+    privacyPolicy: 'Política de privacidade',
+    refundPolicy: 'Política de reembolso',
+    and: 'e',
+    productNotFound: 'Produto não encontrado',
+    productNotFoundDesc: 'O produto que você está procurando não existe ou não está mais disponível.',
+    loading: 'Carregando produto...',
+    multicaixaExpress: 'Multicaixa Express',
+    paymentByReference: 'Pagamento por Referência',
+    paypayAfri: 'PayPay Afri',
+  },
+  en: {
+    securePayment: '100% SECURE PURCHASE',
+    instantDelivery: 'Instant delivery',
+    fullName: 'Full name',
+    fullNamePlaceholder: 'Enter your full name',
+    email: 'E-mail',
+    emailPlaceholder: 'Enter your e-mail to receive the purchase',
+    phone: 'Phone or Whatsapp *',
+    payWith: 'Pay with:',
+    selectPayment: 'Select the desired payment method',
+    orderSummary: 'Order summary',
+    total: 'Total',
+    buyNow: 'BUY NOW',
+    processing: 'Processing...',
+    hasCoupon: 'Have a discount coupon?',
+    couponPlaceholder: 'Enter coupon code',
+    apply: 'Apply',
+    remove: 'Remove',
+    coupon: 'Coupon',
+    specialOffer: '🎁 Special Offer!',
+    soldBy: 'Sold by:',
+    processedBy: 'Processed by',
+    allRights: 'All rights reserved.',
+    legalText: 'By clicking Buy now, I declare that I have read and agree (1) that KixicoPay is processing this order on behalf of',
+    legalText2: 'has no responsibility for the content and/or does not perform prior control of this (read) with the',
+    termsOfUse: 'Terms of use',
+    privacyPolicy: 'Privacy policy',
+    refundPolicy: 'Refund policy',
+    and: 'and',
+    productNotFound: 'Product not found',
+    productNotFoundDesc: 'The product you are looking for does not exist or is no longer available.',
+    loading: 'Loading product...',
+    multicaixaExpress: 'Multicaixa Express',
+    paymentByReference: 'Payment by Reference',
+    paypayAfri: 'PayPay Afri',
+  }
+};
 
 export default function Checkout() {
   const { productId } = useParams<{ productId?: string }>();
@@ -63,11 +146,14 @@ export default function Checkout() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [language, setLanguage] = useState<Language>('pt');
   
   // Order Bump states
   const [orderBumpAccepted, setOrderBumpAccepted] = useState(false);
   const [orderBumpProduct, setOrderBumpProduct] = useState<{ name: string; description: string; image_url?: string } | null>(null);
   const [sellerName, setSellerName] = useState<string>('o Vendedor');
+  
+  const t = translations[language];
   
   // Coupon states
   const [showCouponField, setShowCouponField] = useState(false);
@@ -526,7 +612,7 @@ export default function Checkout() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Carregando produto...</div>
+        <div className="text-gray-600">{t.loading}</div>
       </div>
     );
   }
@@ -537,10 +623,10 @@ export default function Checkout() {
         <Card className="max-w-md mx-auto">
           <CardContent className="text-center py-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Produto não encontrado
+              {t.productNotFound}
             </h2>
             <p className="text-gray-500">
-              O produto que você está procurando não existe ou não está mais disponível.
+              {t.productNotFoundDesc}
             </p>
           </CardContent>
         </Card>
@@ -549,25 +635,52 @@ export default function Checkout() {
   }
 
   // Get customization settings from product
-  const buttonColor = product?.checkout_button_color || '#22c55e';
+  const buttonColor = product?.checkout_button_color || 'hsl(var(--primary))';
+  const headerBgColor = product?.checkout_button_color || 'hsl(var(--primary))';
   const timerEnabled = product?.checkout_timer_enabled || false;
   const showKixicoPayLogo = product?.checkout_show_kixicopay_logo !== false;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header - Compra 100% Segura */}
-      <header className="bg-green-600 py-3 px-4">
+      <header 
+        className="py-3 px-4"
+        style={{ backgroundColor: headerBgColor }}
+      >
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 text-white">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span className="font-semibold text-sm">COMPRA 100% SEGURA</span>
+            <span className="font-semibold text-sm">{t.securePayment}</span>
           </div>
-          <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1">
-            <span className="text-xl">🇦🇴</span>
-            <span className="text-white text-sm font-medium">AO</span>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1 hover:bg-white/30 transition-colors cursor-pointer">
+                <span className="text-xl">{language === 'pt' ? '🇦🇴' : '🇬🇧'}</span>
+                <span className="text-white text-sm font-medium">{language === 'pt' ? 'PT' : 'EN'}</span>
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[120px]">
+              <DropdownMenuItem 
+                onClick={() => setLanguage('pt')}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <span className="text-lg">🇦🇴</span>
+                <span>Português</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setLanguage('en')}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <span className="text-lg">🇬🇧</span>
+                <span>English</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -596,11 +709,17 @@ export default function Checkout() {
                 {/* Product Info */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
-                    <h1 className="font-bold text-gray-900 text-lg leading-tight mb-2">
+                    <h1 className="font-bold text-gray-900 text-lg leading-tight mb-1">
                       {product.name}
                     </h1>
+                    {product.product_category && (
+                      <p className="text-gray-500 text-xs mb-1">{product.product_category}</p>
+                    )}
+                    <p className="text-gray-600 text-sm mb-2">
+                      {t.soldBy} <span className="font-medium text-gray-800">{sellerName}</span>
+                    </p>
                     <div className="flex items-center gap-1 text-green-600 text-sm mb-3">
-                      <span>Entrega instantânea</span>
+                      <span>{t.instantDelivery}</span>
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
@@ -618,7 +737,7 @@ export default function Checkout() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-gray-700 font-medium">
-                Nome completo
+                {t.fullName}
               </Label>
               <Input
                 id="name"
@@ -627,14 +746,14 @@ export default function Checkout() {
                 value={customerData.name}
                 onChange={handleInputChange}
                 required
-                placeholder="Digite seu nome completo"
+                placeholder={t.fullNamePlaceholder}
                 className="h-14 rounded-xl border-gray-200 bg-white text-gray-900 placeholder:text-gray-400"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700 font-medium">
-                E-mail
+                {t.email}
               </Label>
               <Input
                 id="email"
@@ -643,21 +762,19 @@ export default function Checkout() {
                 value={customerData.email}
                 onChange={handleInputChange}
                 required
-                placeholder="Digite seu e-mail para receber a compra"
+                placeholder={t.emailPlaceholder}
                 className="h-14 rounded-xl border-gray-200 bg-white text-gray-900 placeholder:text-gray-400"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-gray-700 font-medium">
-                Telefone ou Whatsapp *
+                {t.phone}
               </Label>
               <div className="flex gap-2">
-                <div className="flex items-center gap-2 px-3 h-14 rounded-xl border border-gray-200 bg-white min-w-[90px]">
+                <div className="flex items-center gap-2 px-3 h-14 rounded-xl border border-gray-200 bg-white min-w-[110px]">
                   <span className="text-xl">🇦🇴</span>
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <span className="text-gray-700 text-sm font-medium">+244</span>
                 </div>
                 <Input
                   id="phone"
@@ -665,7 +782,7 @@ export default function Checkout() {
                   type="tel"
                   value={customerData.phone}
                   onChange={handleInputChange}
-                  placeholder="+244"
+                  placeholder="9XX XXX XXX"
                   className="flex-1 h-14 rounded-xl border-gray-200 bg-white text-gray-900 placeholder:text-gray-400"
                 />
               </div>
@@ -674,8 +791,8 @@ export default function Checkout() {
 
           {/* Payment Methods */}
           <div className="space-y-3">
-            <p className="text-green-600 font-semibold">Pagar com:</p>
-            <p className="text-gray-600 text-sm">Selecione a forma de pagamento desejada</p>
+            <p className="text-primary font-semibold">{t.payWith}</p>
+            <p className="text-gray-600 text-sm">{t.selectPayment}</p>
             
             <div className="grid grid-cols-3 gap-3">
               {paymentMethods.map((method) => (
@@ -684,7 +801,7 @@ export default function Checkout() {
                   type="button"
                   className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all bg-white ${
                     selectedPaymentMethod === method.id 
-                      ? 'border-green-500 bg-green-50' 
+                      ? 'border-primary bg-primary/5' 
                       : 'border-gray-100 hover:border-gray-200'
                   }`}
                   onClick={() => setSelectedPaymentMethod(method.id)}
@@ -696,9 +813,9 @@ export default function Checkout() {
                     loading="lazy"
                   />
                   <span className="text-[11px] text-gray-600 text-center leading-tight font-medium">
-                    {method.id === 'multicaixa' ? 'Multicaixa Express' : 
-                     method.id === 'reference' ? 'Pagamento por Referência' : 
-                     method.id === 'paypal_ao' ? 'PayPay Afri' : method.name}
+                    {method.id === 'multicaixa' ? t.multicaixaExpress : 
+                     method.id === 'reference' ? t.paymentByReference : 
+                     method.id === 'paypal_ao' ? t.paypayAfri : method.name}
                   </span>
                 </button>
               ))}
@@ -712,15 +829,15 @@ export default function Checkout() {
                 <button
                   type="button"
                   onClick={() => setShowCouponField(!showCouponField)}
-                  className="text-green-600 hover:text-green-700 text-sm font-medium flex items-center gap-1 transition-colors"
+                  className="text-primary hover:text-primary/80 text-sm font-medium flex items-center gap-1 transition-colors"
                 >
-                  {showCouponField ? '▼' : '▶'} Tem um cupão de desconto?
+                  {showCouponField ? '▼' : '▶'} {t.hasCoupon}
                 </button>
                 
                 {showCouponField && (
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Digite o código do cupão"
+                      placeholder={t.couponPlaceholder}
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                       onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
@@ -730,20 +847,20 @@ export default function Checkout() {
                       type="button"
                       onClick={handleApplyCoupon}
                       disabled={!couponCode.trim() || isCouponLoading}
-                      className="h-12 px-6 rounded-xl bg-green-600 hover:bg-green-700 text-white"
+                      className="h-12 px-6 rounded-xl"
                     >
-                      {isCouponLoading ? '...' : 'Aplicar'}
+                      {isCouponLoading ? '...' : t.apply}
                     </Button>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
                 <div className="flex items-center gap-2">
-                  <span className="text-green-600 text-sm font-medium">
-                    Cupão: {appliedCoupon.code}
+                  <span className="text-primary text-sm font-medium">
+                    {t.coupon}: {appliedCoupon.code}
                   </span>
-                  <Badge className="bg-green-100 text-green-700 border-0">
+                  <Badge className="bg-primary/10 text-primary border-0">
                     {appliedCoupon.discount_type === 'percentage' 
                       ? `${appliedCoupon.discount_value}%` 
                       : formatPriceFromDB(appliedCoupon.discount_value)}
@@ -756,7 +873,7 @@ export default function Checkout() {
                   onClick={handleRemoveCoupon}
                   className="text-red-500 hover:bg-red-50"
                 >
-                  Remover
+                  {t.remove}
                 </Button>
               </div>
             )}
@@ -769,7 +886,7 @@ export default function Checkout() {
            orderBumpProduct && (
             <div 
               className={`border-2 rounded-2xl p-4 transition-all cursor-pointer bg-white ${
-                orderBumpAccepted ? 'border-green-500 bg-green-50' : 'border-gray-200'
+                orderBumpAccepted ? 'border-primary bg-primary/5' : 'border-gray-200'
               }`}
               onClick={() => setOrderBumpAccepted(!orderBumpAccepted)}
             >
@@ -778,7 +895,7 @@ export default function Checkout() {
                   type="checkbox"
                   checked={orderBumpAccepted}
                   onChange={(e) => setOrderBumpAccepted(e.target.checked)}
-                  className="mt-1 h-5 w-5 rounded accent-green-600"
+                  className="mt-1 h-5 w-5 rounded accent-primary"
                 />
                 <div className="flex-1">
                   <div className="flex items-start gap-3">
@@ -792,12 +909,12 @@ export default function Checkout() {
                     )}
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900 mb-1">
-                        {product.order_bump_headline || '🎁 Oferta Especial!'}
+                        {product.order_bump_headline || t.specialOffer}
                       </h4>
                       <p className="font-medium text-gray-800 text-sm mb-1">
                         {orderBumpProduct.name}
                       </p>
-                      <p className="text-green-600 font-bold">
+                      <p className="text-primary font-bold">
                         {formatPriceFromDB(product.order_bump_price)}
                       </p>
                     </div>
@@ -810,7 +927,7 @@ export default function Checkout() {
           {/* Order Summary */}
           <Card className="shadow-sm border-0 bg-white rounded-2xl overflow-hidden">
             <CardContent className="p-5 space-y-4">
-              <h3 className="font-bold text-gray-900 text-lg">Resumo do pedido</h3>
+              <h3 className="font-bold text-gray-900 text-lg">{t.orderSummary}</h3>
               
               <div className="flex justify-between items-start">
                 <span className="text-gray-600 flex-1">{product.name}</span>
@@ -829,8 +946,8 @@ export default function Checkout() {
               )}
               
               <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
-                <span className="font-medium text-gray-900">Total</span>
-                <span className="text-green-600 font-bold text-2xl">
+                <span className="font-medium text-gray-900">{t.total}</span>
+                <span className="text-primary font-bold text-2xl">
                   {planData ? 
                     `${formatPriceFromDB(calculateTotalPrice())}/mês` :
                     formatPriceFromDB(calculateTotalPrice())}
@@ -843,10 +960,11 @@ export default function Checkout() {
           <Button
             onClick={handlePayment}
             size="lg"
-            className="w-full h-14 text-lg font-semibold rounded-xl bg-green-500 hover:bg-green-600 text-white disabled:opacity-50"
+            className="w-full h-14 text-lg font-semibold rounded-xl disabled:opacity-50"
+            style={{ backgroundColor: buttonColor }}
             disabled={!selectedPaymentMethod || isProcessing}
           >
-            {isProcessing ? 'Processando...' : 'COMPRAR AGORA'}
+            {isProcessing ? t.processing : t.buyNow}
           </Button>
         </div>
       </main>
@@ -855,29 +973,29 @@ export default function Checkout() {
       <footer className="py-8 px-4 bg-white border-t border-gray-100">
         <div className="max-w-lg mx-auto text-center space-y-4">
           {showKixicoPayLogo && (
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-gray-500 text-sm">{t.processedBy}</p>
               <img 
                 src="/assets/kixicopay-vertical.png" 
                 alt="KixicoPay" 
-                className="h-16 w-auto object-contain"
+                className="h-24 w-auto object-contain"
                 loading="lazy"
               />
-              <p className="text-green-600 font-semibold">KixicoPay</p>
-              <p className="text-gray-500 text-sm">Todos os direitos reservados.</p>
+              <p className="text-gray-500 text-sm">{t.allRights}</p>
             </div>
           )}
           
           <p className="text-[11px] text-gray-400 leading-relaxed">
-            Ao clicar em Comprar agora, eu declaro que li e concordo (1) com a KixicoPay está processando este pedido em nome de{' '}
-            <span className="text-green-600 font-medium">{sellerName}</span>{' '}
-            não possui responsabilidade pelo conteúdo e/ou faz controle prévio deste (li) com os{' '}
+            {t.legalText}{' '}
+            <span className="text-primary font-medium">{sellerName}</span>{' '}
+            {t.legalText2}{' '}
             <a 
               href="/termos-de-uso" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-gray-500 underline hover:text-gray-700"
             >
-              Termos de uso
+              {t.termsOfUse}
             </a>
             ,{' '}
             <a 
@@ -886,16 +1004,16 @@ export default function Checkout() {
               rel="noopener noreferrer"
               className="text-gray-500 underline hover:text-gray-700"
             >
-              Política de privacidade
+              {t.privacyPolicy}
             </a>
-            {' '}e{' '}
+            {' '}{t.and}{' '}
             <a 
               href="/politica-de-reembolso" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-gray-500 underline hover:text-gray-700"
             >
-              Política de reembolso
+              {t.refundPolicy}
             </a>.
           </p>
         </div>
