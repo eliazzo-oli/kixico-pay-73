@@ -525,21 +525,21 @@ export default function Checkout() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-foreground">Carregando produto...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Carregando produto...</div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="max-w-md mx-auto">
           <CardContent className="text-center py-8">
-            <h2 className="text-xl font-semibold text-foreground mb-2">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
               Produto não encontrado
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-gray-500">
               O produto que você está procurando não existe ou não está mais disponível.
             </p>
           </CardContent>
@@ -549,433 +549,353 @@ export default function Checkout() {
   }
 
   // Get customization settings from product
-  const backgroundColor = product?.checkout_background_color || '#ffffff';
-  const textColor = product?.checkout_text_color || '#000000';
-  const buttonColor = product?.checkout_button_color || '#6366f1';
+  const buttonColor = product?.checkout_button_color || '#22c55e';
   const timerEnabled = product?.checkout_timer_enabled || false;
   const showKixicoPayLogo = product?.checkout_show_kixicopay_logo !== false;
 
-  // Primary color for secure bar (product button color or brand purple)
-  const secureBannerColor = product?.checkout_button_color || '#9333ea';
-
   return (
-    <div 
-      className="min-h-screen flex flex-col"
-      style={{ backgroundColor }}
-    >
-      {/* Barra de Compra Segura */}
-      <div 
-        className="py-3 text-center"
-        style={{ backgroundColor: secureBannerColor }}
-      >
-        <p className="text-white text-sm font-medium flex items-center justify-center gap-2">
-          🔒 Compra 100% Segura
-        </p>
-      </div>
-
-      <div className="flex-1 container mx-auto px-4 py-6 md:py-8">
-        <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold" style={{ color: textColor }}>
-              Finalizar Compra
-            </h1>
-            <p className="text-sm md:text-base" style={{ color: textColor, opacity: 0.7 }}>
-              Conclua sua compra de forma segura
-            </p>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Header - Compra 100% Segura */}
+      <header className="bg-green-600 py-3 px-4">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2 text-white">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="font-semibold text-sm">COMPRA 100% SEGURA</span>
           </div>
+          <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1">
+            <span className="text-xl">🇦🇴</span>
+            <span className="text-white text-sm font-medium">AO</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 px-4 py-6">
+        <div className="max-w-lg mx-auto space-y-6">
           
           {/* Timer de Escassez */}
           {timerEnabled && (
-            <div className="mb-4 md:mb-6">
-              <CheckoutTimer textColor={textColor} buttonColor={buttonColor} />
-            </div>
+            <CheckoutTimer textColor="#1f2937" buttonColor={buttonColor} />
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Product Details */}
-            <Card className="border-border/50 shadow-elegant">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-foreground">Resumo do Pedido</CardTitle>
-                {/* Entrega Instantânea Badge */}
-                <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">
-                  ⚡ Entrega Instantânea
-                </Badge>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Horizontal layout: image left, info right */}
-                  <div className="flex gap-4">
-                    {product.image_url && (
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg flex-shrink-0"
+          {/* Product Card */}
+          <Card className="shadow-sm border-0 bg-white rounded-2xl overflow-hidden">
+            <CardContent className="p-5">
+              <div className="flex gap-4">
+                {/* Product Image */}
+                {product.image_url && (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-28 h-36 object-cover rounded-xl flex-shrink-0"
+                    loading="lazy"
+                  />
+                )}
+                
+                {/* Product Info */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between">
+                  <div>
+                    <h1 className="font-bold text-gray-900 text-lg leading-tight mb-2">
+                      {product.name}
+                    </h1>
+                    <div className="flex items-center gap-1 text-green-600 text-sm mb-3">
+                      <span>Entrega instantânea</span>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="text-green-600 font-bold text-2xl">
+                    {formatPriceFromDB(product.price)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Form */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-gray-700 font-medium">
+                Nome completo
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                value={customerData.name}
+                onChange={handleInputChange}
+                required
+                placeholder="Digite seu nome completo"
+                className="h-14 rounded-xl border-gray-200 bg-white text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-gray-700 font-medium">
+                E-mail
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={customerData.email}
+                onChange={handleInputChange}
+                required
+                placeholder="Digite seu e-mail para receber a compra"
+                className="h-14 rounded-xl border-gray-200 bg-white text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-gray-700 font-medium">
+                Telefone ou Whatsapp *
+              </Label>
+              <div className="flex gap-2">
+                <div className="flex items-center gap-2 px-3 h-14 rounded-xl border border-gray-200 bg-white min-w-[90px]">
+                  <span className="text-xl">🇦🇴</span>
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={customerData.phone}
+                  onChange={handleInputChange}
+                  placeholder="+244"
+                  className="flex-1 h-14 rounded-xl border-gray-200 bg-white text-gray-900 placeholder:text-gray-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Methods */}
+          <div className="space-y-3">
+            <p className="text-green-600 font-semibold">Pagar com:</p>
+            <p className="text-gray-600 text-sm">Selecione a forma de pagamento desejada</p>
+            
+            <div className="grid grid-cols-3 gap-3">
+              {paymentMethods.map((method) => (
+                <button
+                  key={method.id}
+                  type="button"
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all bg-white ${
+                    selectedPaymentMethod === method.id 
+                      ? 'border-green-500 bg-green-50' 
+                      : 'border-gray-100 hover:border-gray-200'
+                  }`}
+                  onClick={() => setSelectedPaymentMethod(method.id)}
+                >
+                  <img 
+                    src={method.logo} 
+                    alt={method.name}
+                    className="h-10 w-10 object-contain mb-2"
+                    loading="lazy"
+                  />
+                  <span className="text-[11px] text-gray-600 text-center leading-tight font-medium">
+                    {method.id === 'multicaixa' ? 'Multicaixa Express' : 
+                     method.id === 'reference' ? 'Pagamento por Referência' : 
+                     method.id === 'paypal_ao' ? 'PayPay Afri' : method.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Coupon Section */}
+          <div className="space-y-3">
+            {!appliedCoupon ? (
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCouponField(!showCouponField)}
+                  className="text-green-600 hover:text-green-700 text-sm font-medium flex items-center gap-1 transition-colors"
+                >
+                  {showCouponField ? '▼' : '▶'} Tem um cupão de desconto?
+                </button>
+                
+                {showCouponField && (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Digite o código do cupão"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                      className="flex-1 h-12 rounded-xl border-gray-200"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={!couponCode.trim() || isCouponLoading}
+                      className="h-12 px-6 rounded-xl bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {isCouponLoading ? '...' : 'Aplicar'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-600 text-sm font-medium">
+                    Cupão: {appliedCoupon.code}
+                  </span>
+                  <Badge className="bg-green-100 text-green-700 border-0">
+                    {appliedCoupon.discount_type === 'percentage' 
+                      ? `${appliedCoupon.discount_value}%` 
+                      : formatPriceFromDB(appliedCoupon.discount_value)}
+                  </Badge>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemoveCoupon}
+                  className="text-red-500 hover:bg-red-50"
+                >
+                  Remover
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Order Bump Section */}
+          {product?.order_bump_enabled && 
+           product?.order_bump_product_id && 
+           product?.order_bump_price && 
+           orderBumpProduct && (
+            <div 
+              className={`border-2 rounded-2xl p-4 transition-all cursor-pointer bg-white ${
+                orderBumpAccepted ? 'border-green-500 bg-green-50' : 'border-gray-200'
+              }`}
+              onClick={() => setOrderBumpAccepted(!orderBumpAccepted)}
+            >
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={orderBumpAccepted}
+                  onChange={(e) => setOrderBumpAccepted(e.target.checked)}
+                  className="mt-1 h-5 w-5 rounded accent-green-600"
+                />
+                <div className="flex-1">
+                  <div className="flex items-start gap-3">
+                    {orderBumpProduct.image_url && (
+                      <img 
+                        src={orderBumpProduct.image_url} 
+                        alt={orderBumpProduct.name}
+                        className="w-16 h-20 object-cover rounded-lg flex-shrink-0"
                         loading="lazy"
-                        width="128"
-                        height="128"
                       />
                     )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg md:text-xl font-semibold text-foreground line-clamp-2">
-                        {product.name}
-                      </h3>
-                      {/* Categoria do Produto */}
-                      {product.product_category && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {product.product_category}
-                        </p>
-                      )}
-                      {/* Vendido por */}
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Vendido por: <span className="font-medium">{sellerName}</span>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900 mb-1">
+                        {product.order_bump_headline || '🎁 Oferta Especial!'}
+                      </h4>
+                      <p className="font-medium text-gray-800 text-sm mb-1">
+                        {orderBumpProduct.name}
+                      </p>
+                      <p className="text-green-600 font-bold">
+                        {formatPriceFromDB(product.order_bump_price)}
                       </p>
                     </div>
                   </div>
-                  
-                  {product.description && (
-                    <p className="text-sm text-muted-foreground">
-                      {product.description}
-                    </p>
-                  )}
-                  
-                  {/* Applied Coupon Display */}
-                  {appliedCoupon && (
-                    <div className="pt-4 border-t border-border/50">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Preço original:</span>
-                        <span className="text-muted-foreground line-through">
-                          {formatPriceFromDB(product.price)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-green-600">
-                          Desconto ({appliedCoupon.code}):
-                        </span>
-                        <span className="text-green-600">
-                          -{appliedCoupon.discount_type === 'percentage' 
-                            ? `${appliedCoupon.discount_value}%` 
-                            : formatPriceFromDB(appliedCoupon.discount_value)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-between items-center pt-4 border-t border-border/50">
-                    <span className="text-lg font-medium text-foreground">Total:</span>
-                    <span className="text-2xl font-bold text-primary">
-                      {planData ? 
-                        `${formatPriceFromDB(calculateTotalPrice())}/mês` :
-                        formatPriceFromDB(calculateTotalPrice())}
-                    </span>
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          )}
 
-            {/* Payment Form */}
-            <Card className="border-border/50 shadow-elegant">
-              <CardHeader>
-                <CardTitle className="text-foreground">Dados de Pagamento</CardTitle>
-                <CardDescription>
-                  Preencha seus dados para concluir a compra
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Customer Information */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-foreground">Informações do Cliente</h4>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome Completo *</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      type="text"
-                      value={customerData.name}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Seu nome completo"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={customerData.email}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="seu@email.com"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Telefone</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={customerData.phone}
-                      onChange={handleInputChange}
-                      placeholder="+244 xxx xxx xxx"
-                    />
-                  </div>
+          {/* Order Summary */}
+          <Card className="shadow-sm border-0 bg-white rounded-2xl overflow-hidden">
+            <CardContent className="p-5 space-y-4">
+              <h3 className="font-bold text-gray-900 text-lg">Resumo do pedido</h3>
+              
+              <div className="flex justify-between items-start">
+                <span className="text-gray-600 flex-1">{product.name}</span>
+                <span className="font-medium text-gray-900 text-right">
+                  {formatPriceFromDB(calculateDiscountedPrice(product.price))}
+                </span>
+              </div>
+              
+              {orderBumpAccepted && product.order_bump_price && orderBumpProduct && (
+                <div className="flex justify-between items-start">
+                  <span className="text-gray-600 flex-1">{orderBumpProduct.name}</span>
+                  <span className="font-medium text-gray-900 text-right">
+                    {formatPriceFromDB(product.order_bump_price)}
+                  </span>
                 </div>
+              )}
+              
+              <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
+                <span className="font-medium text-gray-900">Total</span>
+                <span className="text-green-600 font-bold text-2xl">
+                  {planData ? 
+                    `${formatPriceFromDB(calculateTotalPrice())}/mês` :
+                    formatPriceFromDB(calculateTotalPrice())}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
 
-                {/* Payment Methods */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-foreground">Método de Pagamento</h4>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
-                    {paymentMethods.map((method) => (
-                      <button
-                        key={method.id}
-                        type="button"
-                        className="border-2 rounded-xl p-3 md:p-4 cursor-pointer transition-all duration-300 text-left"
-                        style={{
-                          borderColor: selectedPaymentMethod === method.id ? buttonColor : 'hsl(var(--border))',
-                          backgroundColor: selectedPaymentMethod === method.id ? `${buttonColor}15` : 'transparent',
-                        }}
-                        onClick={() => setSelectedPaymentMethod(method.id)}
-                      >
-                        <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
-                          <div className="flex-shrink-0">
-                            <img 
-                              src={method.logo} 
-                              alt={method.name}
-                              className="h-10 w-10 md:h-12 md:w-auto object-contain rounded-lg"
-                              loading="lazy"
-                              width="48"
-                              height="48"
-                            />
-                          </div>
-                          <div className="flex-1 text-center md:text-left">
-                            <h5 className="font-medium text-foreground text-xs md:text-base">
-                              {method.name}
-                            </h5>
-                            <p className="text-muted-foreground text-[10px] md:text-sm hidden md:block">
-                              {method.description}
-                            </p>
-                          </div>
-                          {selectedPaymentMethod === method.id && (
-                            <div className="flex-shrink-0 hidden md:block">
-                              <div 
-                                className="w-6 h-6 rounded-full flex items-center justify-center"
-                                style={{ backgroundColor: buttonColor }}
-                              >
-                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                  
-                </div>
-
-                {/* Coupon Section */}
-                <div className="space-y-4">
-                  {!appliedCoupon ? (
-                    <div className="space-y-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowCouponField(!showCouponField)}
-                        className="text-primary hover:text-primary/80 text-sm flex items-center gap-1 transition-colors"
-                      >
-                        ▶ Tem um cupão de desconto?
-                      </button>
-                      
-                      {showCouponField && (
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Digite o código do cupão"
-                            value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                            onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                            className="flex-1"
-                          />
-                          <Button
-                            type="button"
-                            onClick={handleApplyCoupon}
-                            disabled={!couponCode.trim() || isCouponLoading}
-                            size="sm"
-                            style={{ 
-                              backgroundColor: buttonColor,
-                              color: '#ffffff'
-                            }}
-                          >
-                            {isCouponLoading ? 'A aplicar...' : 'Aplicar'}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <span className="text-green-600 text-sm font-medium">
-                          Cupão aplicado: {appliedCoupon.code}
-                        </span>
-                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                          {appliedCoupon.discount_type === 'percentage' 
-                            ? `${appliedCoupon.discount_value}%` 
-                            : formatPriceFromDB(appliedCoupon.discount_value)} desconto
-                        </Badge>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleRemoveCoupon}
-                        className="hover:bg-red-50"
-                        style={{ 
-                          color: buttonColor
-                        }}
-                      >
-                        Remover
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Order Bump Section */}
-                {product?.order_bump_enabled && 
-                 product?.order_bump_product_id && 
-                 product?.order_bump_price && 
-                 orderBumpProduct && (
-                  <div className="space-y-4">
-                    <div 
-                      className="border-2 rounded-lg p-6 transition-all cursor-pointer"
-                      onClick={() => setOrderBumpAccepted(!orderBumpAccepted)}
-                      style={{
-                        borderColor: orderBumpAccepted ? buttonColor : 'rgba(0,0,0,0.1)',
-                        backgroundColor: orderBumpAccepted ? `${buttonColor}10` : 'transparent',
-                      }}
-                    >
-                      <div className="flex items-start gap-4">
-                        <input
-                          type="checkbox"
-                          checked={orderBumpAccepted}
-                          onChange={(e) => setOrderBumpAccepted(e.target.checked)}
-                          className="mt-1 h-5 w-5 rounded cursor-pointer"
-                          style={{
-                            accentColor: buttonColor,
-                          }}
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-start gap-4">
-                            {orderBumpProduct.image_url && (
-                              <img 
-                                src={orderBumpProduct.image_url} 
-                                alt={orderBumpProduct.name}
-                                className="w-16 h-16 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0"
-                                loading="lazy"
-                                width="96"
-                                height="96"
-                              />
-                            )}
-                            <div className="flex-1">
-                              <h4 
-                                className="font-semibold text-lg mb-2"
-                                style={{ color: textColor }}
-                              >
-                                {product.order_bump_headline || '🎁 Oferta Especial!'}
-                              </h4>
-                              <p className="font-bold mb-2" style={{ color: textColor }}>
-                                {orderBumpProduct.name}
-                              </p>
-                              <p className="text-sm mb-3 opacity-75" style={{ color: textColor }}>
-                                {orderBumpProduct.description}
-                              </p>
-                              <div className="flex items-center gap-2">
-                                <span 
-                                  className="text-2xl font-bold"
-                                  style={{ color: buttonColor }}
-                                >
-                                  {formatPriceFromDB(product.order_bump_price)}
-                                </span>
-                                <Badge 
-                                  variant="secondary" 
-                                  style={{
-                                    backgroundColor: `${buttonColor}20`,
-                                    color: buttonColor,
-                                  }}
-                                >
-                                  Preço Especial
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <Button
-                  onClick={handlePayment}
-                  size="lg"
-                  className="w-full h-12 md:h-14 text-base md:text-lg font-semibold"
-                  style={{ 
-                    backgroundColor: buttonColor,
-                    color: '#ffffff'
-                  }}
-                  disabled={!selectedPaymentMethod || isProcessing}
-                >
-                  {isProcessing ? 'Processando...' : 'Pagar Agora'}
-                </Button>
-
-                <p className="text-[10px] md:text-xs text-muted-foreground text-center">
-                  Ao finalizar a compra, você concorda com nossos termos de serviço.
-                  Seus dados estão protegidos e seguros.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Buy Button */}
+          <Button
+            onClick={handlePayment}
+            size="lg"
+            className="w-full h-14 text-lg font-semibold rounded-xl bg-green-500 hover:bg-green-600 text-white disabled:opacity-50"
+            disabled={!selectedPaymentMethod || isProcessing}
+          >
+            {isProcessing ? 'Processando...' : 'COMPRAR AGORA'}
+          </Button>
         </div>
-      </div>
+      </main>
       
-      {/* Footer with KixicoPay Logo and Legal Text */}
-      <footer className="py-8 border-t border-border/30" style={{ backgroundColor }}>
-        <div className="container mx-auto px-4 text-center">
+      {/* Footer */}
+      <footer className="py-8 px-4 bg-white border-t border-gray-100">
+        <div className="max-w-lg mx-auto text-center space-y-4">
           {showKixicoPayLogo && (
-            <>
-              <p className="text-xs mb-3" style={{ color: textColor, opacity: 0.5 }}>
-                Processado por
-              </p>
+            <div className="flex flex-col items-center gap-2">
               <img 
-                src="/lovable-uploads/0f5bf660-8c04-40db-bce3-5eeffc70c9d5.png" 
+                src="/assets/kixicopay-vertical.png" 
                 alt="KixicoPay" 
-                className="mx-auto h-16 md:h-20 w-auto object-contain mb-6"
+                className="h-16 w-auto object-contain"
                 loading="lazy"
-                width="160"
-                height="80"
               />
-            </>
+              <p className="text-green-600 font-semibold">KixicoPay</p>
+              <p className="text-gray-500 text-sm">Todos os direitos reservados.</p>
+            </div>
           )}
           
-          <p className="text-[10px] max-w-xl mx-auto" style={{ color: textColor, opacity: 0.4 }}>
-            Ao finalizar esta compra, você reconhece que a KixicoPay atua exclusivamente como processadora de pagamentos em nome de {sellerName} e não assume responsabilidade pelo conteúdo, entrega ou oferta deste produto. Ao continuar, você concorda com os nossos{' '}
+          <p className="text-[11px] text-gray-400 leading-relaxed">
+            Ao clicar em Comprar agora, eu declaro que li e concordo (1) com a KixicoPay está processando este pedido em nome de{' '}
+            <span className="text-green-600 font-medium">{sellerName}</span>{' '}
+            não possui responsabilidade pelo conteúdo e/ou faz controle prévio deste (li) com os{' '}
             <a 
               href="/termos-de-uso" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="underline hover:opacity-80"
-              style={{ color: textColor }}
+              className="text-gray-500 underline hover:text-gray-700"
             >
-              Termos de Uso
-            </a>{' '}
-            e{' '}
+              Termos de uso
+            </a>
+            ,{' '}
             <a 
               href="/politica-de-privacidade" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="underline hover:opacity-80"
-              style={{ color: textColor }}
+              className="text-gray-500 underline hover:text-gray-700"
             >
-              Política de Privacidade
+              Política de privacidade
+            </a>
+            {' '}e{' '}
+            <a 
+              href="/politica-de-reembolso" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-500 underline hover:text-gray-700"
+            >
+              Política de reembolso
             </a>.
           </p>
         </div>
