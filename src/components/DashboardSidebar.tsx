@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import kixicoPayLogo from "/lovable-uploads/9a0e296b-bc4f-460b-9e96-40c29ccfbe47.png";
 
 const navigationItems = [
   {
@@ -99,13 +100,13 @@ export function DashboardSidebar() {
             >
               {sidebarState !== 'collapsed' ? (
                 <img 
-                  src="/assets/logo-horizontal.png" 
+                  src={kixicoPayLogo}
                   alt="KixicoPay" 
-                  className="h-12 w-auto"
+                  className="h-8 w-auto"
                 />
               ) : (
                 <img 
-                  src="/assets/logo-horizontal.png" 
+                  src={kixicoPayLogo}
                   alt="KixicoPay" 
                   className="h-8 w-8 object-contain"
                 />

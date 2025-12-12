@@ -3,6 +3,7 @@ import { CreditCard, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import kixicoPayLogo from "/lovable-uploads/9a0e296b-bc4f-460b-9e96-40c29ccfbe47.png";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,9 +28,9 @@ export default function Header() {
             className="flex items-center hover:opacity-80 transition-opacity"
           >
             <img 
-              src="/assets/logo-horizontal.png" 
+              src={kixicoPayLogo}
               alt="KixicoPay" 
-              className="h-10 md:h-12 w-auto logo-animated optimized-image"
+              className="h-8 md:h-10 w-auto logo-animated optimized-image"
               loading="eager"
               decoding="async"
             />

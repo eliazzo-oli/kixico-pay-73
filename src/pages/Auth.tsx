@@ -87,9 +87,9 @@ export default function Auth() {
             className="inline-block hover:opacity-80 transition-opacity mb-4"
           >
             <img 
-              src="/assets/logo-vertical.png" 
+              src={kixicoPayLogo}
               alt="KixicoPay" 
-              className="h-40 md:h-56 w-auto mx-auto logo-animated optimized-image"
+              className="h-16 md:h-20 w-auto mx-auto logo-animated optimized-image"
               loading="eager"
               decoding="async"
             />
