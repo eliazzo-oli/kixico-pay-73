@@ -102,13 +102,13 @@ export function DashboardSidebar() {
                 <img 
                   src={kixicoPayLogo}
                   alt="KixicoPay" 
-                  className="h-8 w-auto"
+                  className="h-10 w-auto"
                 />
               ) : (
                 <img 
                   src={kixicoPayLogo}
                   alt="KixicoPay" 
-                  className="h-8 w-8 object-contain"
+                  className="h-10 w-10 object-contain"
                 />
               )}
             </button>
