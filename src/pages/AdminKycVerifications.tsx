@@ -51,12 +51,22 @@ export default function AdminKycVerifications() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_id, name, email, kyc_status, kyc_submitted_at, kyc_reviewed_at, id_front_url, id_back_url, selfie_url, kyc_rejection_reason')
+        .select('user_id, name, email, kyc_status, created_at')
         .in('kyc_status', ['pendente', 'verificado', 'rejeitado'])
-        .order('kyc_submitted_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Map data to interface
+      const mappedUsers: KycUser[] = (data || []).map(profile => ({
+        user_id: profile.user_id,
+        name: profile.name || '',
+        email: profile.email || '',
+        kyc_status: profile.kyc_status || 'nao_verificado',
+        kyc_submitted_at: profile.created_at,
+      }));
+      
+      setUsers(mappedUsers);
     } catch (error) {
       console.error('Error fetching KYC users:', error);
       toast({

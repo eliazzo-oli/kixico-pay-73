@@ -58,15 +58,7 @@ export default function AdminTransactions() {
           .from('profiles')
           .select('user_id, name, email');
 
-        // Fetch withdrawal transactions
-        const { data: withdrawalsData, error: withdrawalsError } = await supabase
-          .from('withdrawals')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (withdrawalsError) throw withdrawalsError;
-
-        // Combine and format data
+        // Format transactions data
         const salesTransactions = salesData?.map(transaction => {
           const product = products?.find(p => p.id === transaction.product_id);
           const userProfile = profiles?.find(p => p.user_id === transaction.user_id);
@@ -74,7 +66,7 @@ export default function AdminTransactions() {
           return {
             id: transaction.id,
             amount: Number(transaction.amount),
-            status: transaction.status,
+            status: transaction.status || 'pending',
             customer_name: transaction.customer_name || 'N/A',
             customer_email: transaction.customer_email,
             payment_method: transaction.payment_method,
@@ -85,27 +77,7 @@ export default function AdminTransactions() {
           };
         }) || [];
 
-        const withdrawalTransactions = withdrawalsData?.map(withdrawal => {
-          const userProfile = profiles?.find(p => p.user_id === withdrawal.user_id);
-          
-          return {
-            id: withdrawal.id,
-            amount: Number(withdrawal.amount),
-            status: withdrawal.status,
-            customer_name: userProfile?.name || 'N/A',
-            customer_email: userProfile?.email || 'N/A',
-            payment_method: 'Saque',
-            created_at: withdrawal.created_at,
-            type: 'withdrawal' as const,
-            user_name: userProfile?.name
-          };
-        }) || [];
-
-        // Combine and sort by date
-        const allTransactions = [...salesTransactions, ...withdrawalTransactions]
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-        setTransactions(allTransactions);
+        setTransactions(salesTransactions);
       } catch (error) {
         console.error('Error fetching transactions:', error);
       } finally {

@@ -133,13 +133,13 @@ export default function AdminUserAnalytics() {
           user_id: profile.user_id,
           name: profile.name,
           email: profile.email,
-          balance: Number(profile.balance) || 0,
+          balance: 0, // Balance calculado dinamicamente
           total_sales: totalSales,
           total_revenue: totalRevenue,
           total_transactions: totalTransactions,
           created_at: profile.created_at,
           last_transaction: lastTransaction > 0 ? new Date(lastTransaction).toISOString() : '',
-          plano_assinatura: profile.plano_assinatura,
+          plano_assinatura: 'gratuito', // Plataforma gratuita
           active_products: userProducts.length,
           status: profile.status || 'active'
         };

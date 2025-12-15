@@ -17,9 +17,17 @@ export function formatPrice(priceInCents: number) {
 export function formatPriceFromDB(price: number) {
   // Prices are stored in cents (centavos), divide by 100 to get real value
   const realValue = price / 100;
-  const formatted = realValue.toLocaleString('pt-PT', {
+  const formatted = realValue.toLocaleString('pt-AO', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
   return formatted + ' Kz';
+}
+
+export function formatCurrency(value: number, currency: string = 'AOA') {
+  const formatted = value.toLocaleString('pt-AO', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+  return currency === 'AOA' ? formatted + ' Kz' : formatted + ' ' + currency;
 }
