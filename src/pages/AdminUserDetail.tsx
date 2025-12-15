@@ -124,24 +124,41 @@ export default function AdminUserDetail() {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('user_id, name, email, avatar_url, kyc_status, status, created_at, updated_at')
         .eq('user_id', id)
         .single();
 
       if (error) throw error;
 
-      setUserDetail(profile);
-      setCalculatedBalance(profile.balance || 0);
+      // Map to UserDetail interface with defaults for missing fields
+      const userDetailData: UserDetail = {
+        user_id: profile.user_id,
+        name: profile.name || '',
+        email: profile.email || '',
+        phone: '',
+        balance: 0,
+        created_at: profile.created_at,
+        plano_assinatura: 'gratuito',
+        bank_name: '',
+        account_number: '',
+        account_holder_name: '',
+        digital_wallet_type: '',
+        digital_wallet_identifier: '',
+        status: profile.status || 'active',
+      };
+
+      setUserDetail(userDetailData);
+      setCalculatedBalance(0);
       setEditableData({
         name: profile.name || '',
         email: profile.email || '',
-        phone: profile.phone || '',
-        plano_assinatura: profile.plano_assinatura || 'basico',
-        bank_name: profile.bank_name || '',
-        account_number: profile.account_number || '',
-        account_holder_name: profile.account_holder_name || '',
-        digital_wallet_type: profile.digital_wallet_type === 'none' ? '' : profile.digital_wallet_type || '',
-        digital_wallet_identifier: profile.digital_wallet_identifier || '',
+        phone: '',
+        plano_assinatura: 'gratuito',
+        bank_name: '',
+        account_number: '',
+        account_holder_name: '',
+        digital_wallet_type: '',
+        digital_wallet_identifier: '',
       });
 
       // Load documents
@@ -238,12 +255,6 @@ export default function AdminUserDetail() {
 
       setCalculatedBalance(balance);
 
-      // Update the balance in the database to match calculated value
-      await supabase
-        .from('profiles')
-        .update({ balance: balance })
-        .eq('user_id', id);
-
     } catch (error) {
       console.error('Erro ao buscar transações:', error);
     }
@@ -267,34 +278,13 @@ export default function AdminUserDetail() {
   };
 
   const fetchWithdrawals = async () => {
-    if (!id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('withdrawals')
-        .select('*')
-        .eq('user_id', id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setWithdrawals(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar saques:', error);
-    }
+    // Tabela withdrawals não existe ainda - inicializar vazio
+    setWithdrawals([]);
   };
 
   const fetchPlans = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('is_active', true);
-
-      if (error) throw error;
-      setPlans(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar planos:', error);
-    }
+    // Plataforma gratuita - não há planos
+    setPlans([]);
   };
 
   const handleInputChange = (field: string, value: string) => {

@@ -103,106 +103,42 @@ export default function AdminUsers() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch users with their profiles and subscriptions
+        // Fetch users with their profiles
         const { data: profiles, error } = await supabase
           .from('profiles')
-          .select('*');
+          .select('user_id, name, email, status, created_at, kyc_status');
 
         if (error) throw error;
-
-        // Fetch user subscriptions separately
-        const { data: subscriptions } = await supabase
-          .from('user_subscriptions')
-          .select(`
-            user_id,
-            status,
-            expires_at,
-            plans (name)
-          `)
-          .eq('status', 'active');
 
         // Fetch user roles separately
         const { data: roles } = await supabase
           .from('user_roles')
           .select('user_id, role');
 
-        // Fetch plans for reference
-        const { data: plansData } = await supabase
-          .from('plans')
-          .select('*')
-          .eq('is_active', true);
-
         // Calculate real-time balances for all users
         const userDataWithBalances = await Promise.all(
           profiles?.map(async (profile) => {
             const realTimeBalance = await calculateUserBalance(profile.user_id);
-            const userSubscription = subscriptions?.find(sub => sub.user_id === profile.user_id);
             const userRole = roles?.find(role => role.user_id === profile.user_id);
-            
-            // Determinar o plano do usuário: 
-            // 1. Se tem assinatura ativa, usar o plano da assinatura
-            // 2. Se não tem assinatura ativa, usar o plano_assinatura do perfil  
-            // 3. Se não tem nenhum, mostrar o plano básico padrão ou "Sem plano"
-            let planName = 'Sem plano';
-            let subscriptionStatus: 'active' | 'expired' | 'trial_expired' | 'none' = 'none';
-            let subscriptionExpiry: string | undefined;
-            
-            // Verificar status do trial
-            const now = new Date();
-            let isTrialExpired = false;
-            if (profile.trial_end_date) {
-              const trialEndDate = new Date(profile.trial_end_date);
-              isTrialExpired = now > trialEndDate;
-            }
-            
-            if (userSubscription?.plans) {
-              // Usuário tem assinatura ativa - verificar se está expirada
-              planName = (userSubscription.plans as any).name;
-              if (userSubscription.expires_at) {
-                const expiryDate = new Date(userSubscription.expires_at);
-                subscriptionExpiry = userSubscription.expires_at;
-                subscriptionStatus = now <= expiryDate ? 'active' : 'expired';
-              } else {
-                subscriptionStatus = 'active';
-              }
-            } else if (profile.plano_assinatura && profile.plano_assinatura !== 'basico') {
-              // Usuário tem plano definido no perfil (diferente do básico padrão)
-              const planDisplayNames: Record<string, string> = {
-                'basico': 'Básico',
-                'profissional': 'Profissional', 
-                'empresarial': 'Empresarial'
-              };
-              planName = planDisplayNames[profile.plano_assinatura] || profile.plano_assinatura;
-              subscriptionStatus = isTrialExpired ? 'trial_expired' : 'active';
-            } else if (profile.plano_assinatura === 'basico') {
-              // Usuário tem plano básico
-              planName = 'Básico';
-              subscriptionStatus = isTrialExpired ? 'trial_expired' : 'active';
-            } else {
-              // Sem plano
-              subscriptionStatus = isTrialExpired ? 'trial_expired' : 'none';
-            }
             
             return {
               id: profile.user_id,
               name: profile.name,
               email: profile.email,
-              balance: realTimeBalance, // Use calculated real-time balance
+              balance: realTimeBalance,
               created_at: profile.created_at,
-              plan_name: planName,
+              plan_name: 'Gratuito', // Plataforma gratuita
               role: userRole?.role || 'user',
               status: profile.status || 'active',
-              subscription_status: subscriptionStatus,
-              subscription_expiry: subscriptionExpiry
+              subscription_status: 'active' as const,
+              subscription_expiry: undefined
             };
           }) || []
         );
 
-        const userData = userDataWithBalances;
-
-        setUsers(userData);
-        setPlans(plansData || []);
-        setTotalUsers(userData.length);
+        setUsers(userDataWithBalances);
+        setPlans([]); // Plataforma gratuita - sem planos
+        setTotalUsers(userDataWithBalances.length);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {

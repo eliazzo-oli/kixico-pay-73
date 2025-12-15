@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useTrial } from './useTrial';
-
 
 export interface PlanFeatures {
   maxProducts: number;
@@ -88,47 +85,14 @@ const planFeatures: Record<PlanType, PlanFeatures> = {
 
 export function usePlan() {
   const { user } = useAuth();
-  const { trialStatus } = useTrial();
-  const [currentPlan, setCurrentPlan] = useState<PlanType>('basico');
-  const [loading, setLoading] = useState(true);
+  const [currentPlan, setCurrentPlan] = useState<PlanType>('gratuito');
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchUserPlan();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchUserPlan = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('plano_assinatura')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching user plan:', error);
-        return;
-      }
-
-      if (data?.plano_assinatura) {
-        setCurrentPlan(data.plano_assinatura as PlanType);
-      }
-    } catch (error) {
-      console.error('Error in fetchUserPlan:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Durante o trial, usuário tem funcionalidades do plano Profissional
-  const effectivePlan = trialStatus.isInTrial ? 'profissional' : currentPlan;
-  const features = planFeatures[effectivePlan];
+  // Plataforma 100% gratuita - todos têm acesso completo
+  const features = planFeatures['gratuito'];
 
   const canCreateProduct = async (currentProductCount: number): Promise<boolean> => {
-    return currentProductCount < features.maxProducts;
+    return true; // Sem limites
   };
 
   const hasFeature = (feature: keyof PlanFeatures): boolean => {
@@ -136,27 +100,20 @@ export function usePlan() {
   };
 
   const getPlanDisplayName = (plan: PlanType): string => {
-    switch (plan) {
-      case 'gratuito':
-        return 'Gratuito';
-      case 'basico':
-        return 'Básico';
-      case 'profissional':
-        return 'Profissional';
-      case 'empresarial':
-        return 'Empresarial';
-      default:
-        return 'Gratuito';
-    }
+    return 'Gratuito';
+  };
+
+  const refreshPlan = () => {
+    // No-op - plataforma gratuita
   };
 
   return {
-    currentPlan,
+    currentPlan: 'gratuito' as PlanType,
     features,
     loading,
     canCreateProduct,
     hasFeature,
     getPlanDisplayName,
-    refreshPlan: fetchUserPlan,
+    refreshPlan,
   };
 }

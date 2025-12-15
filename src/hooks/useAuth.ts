@@ -49,9 +49,9 @@ export function useAuth() {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('status, trial_end_date, plano_assinatura')
+        .select('status')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error checking user status:', error);
@@ -63,34 +63,6 @@ export function useAuth() {
         toast.error('Sua conta foi suspensa. Entre em contato com o suporte.');
         await supabase.auth.signOut();
         return;
-      }
-
-      // Verificar se o trial expirou e não tem plano pago ativo
-      if (profile?.trial_end_date) {
-        const trialEndDate = new Date(profile.trial_end_date);
-        const now = new Date();
-        const isTrialExpired = now > trialEndDate;
-        
-        // Verificar se tem assinatura ativa e não expirada
-        const { data: subscription } = await supabase
-          .from('user_subscriptions')
-          .select('status, expires_at')
-          .eq('user_id', userId)
-          .eq('status', 'active')
-          .maybeSingle();
-
-        let hasValidSubscription = false;
-        if (subscription?.expires_at) {
-          const subscriptionExpiry = new Date(subscription.expires_at);
-          hasValidSubscription = now <= subscriptionExpiry;
-        }
-
-        // Se o trial expirou e não tem assinatura válida nem plano diferente do básico
-        if (isTrialExpired && !hasValidSubscription && (!profile.plano_assinatura || profile.plano_assinatura === 'basico')) {
-          toast.error('Seu acesso expirou. Renove sua assinatura para continuar usando a plataforma.');
-          await supabase.auth.signOut();
-          return;
-        }
       }
     } catch (error) {
       console.error('Error checking user status:', error);
@@ -150,56 +122,20 @@ export function useAuth() {
       password,
     });
     
-    // Check if user is suspended or trial expired after successful login
+    // Check if user is suspended after successful login
     if (!error && data.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('status, trial_end_date, plano_assinatura, is_two_factor_enabled')
+        .select('status')
         .eq('user_id', data.user.id)
-        .single();
-
-      // Check if 2FA is enabled before proceeding with other checks
-      if (profile?.is_two_factor_enabled) {
-        // Sign out the user since they need to complete 2FA
-        await supabase.auth.signOut();
-        return { requires2FA: true };
-      }
+        .maybeSingle();
         
       if (profile?.status === 'suspended' || profile?.status === 'suspenso') {
         await supabase.auth.signOut();
         return { error: { message: 'Sua conta foi suspensa. Entre em contato com o suporte.' } };
       }
 
-      // Verificar se o trial expirou e não tem plano pago válido
-      if (profile?.trial_end_date) {
-        const trialEndDate = new Date(profile.trial_end_date);
-        const now = new Date();
-        const isTrialExpired = now > trialEndDate;
-        
-        if (isTrialExpired) {
-          // Verificar se tem assinatura ativa e não expirada
-          const { data: subscription } = await supabase
-            .from('user_subscriptions')
-            .select('status, expires_at')
-            .eq('user_id', data.user.id)
-            .eq('status', 'active')
-            .maybeSingle();
-
-          let hasValidSubscription = false;
-          if (subscription?.expires_at) {
-            const subscriptionExpiry = new Date(subscription.expires_at);
-            hasValidSubscription = now <= subscriptionExpiry;
-          }
-
-          // Se não tem assinatura válida nem plano diferente do básico
-          if (!hasValidSubscription && (!profile.plano_assinatura || profile.plano_assinatura === 'basico')) {
-            await supabase.auth.signOut();
-            return { error: { message: 'Seu acesso expirou. Renove sua assinatura para continuar usando a plataforma.' } };
-          }
-        }
-      }
-
-      // Set user online status for successful logins without 2FA
+      // Set user online status for successful logins
       await setProfileOnlineStatus(data.user.id, 'online');
     }
     

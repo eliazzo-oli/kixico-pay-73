@@ -42,38 +42,8 @@ export default function AdminWithdrawals() {
 
   async function fetchWithdrawals() {
     try {
-      // Fetch withdrawals first
-      const { data: withdrawalsData, error: withdrawalsError } = await supabase
-        .from('withdrawals')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (withdrawalsError) throw withdrawalsError;
-
-      // Fetch profiles separately
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, name, email, phone, account_holder_name');
-
-      const formattedWithdrawals = withdrawalsData?.map(withdrawal => {
-        const userProfile = profiles?.find(p => p.user_id === withdrawal.user_id);
-        
-        return {
-          id: withdrawal.id,
-          amount: Number(withdrawal.amount),
-          status: withdrawal.status,
-          bank_name: withdrawal.bank_name,
-          account_number: withdrawal.account_number,
-          created_at: withdrawal.created_at,
-          user_id: withdrawal.user_id,
-          user_name: userProfile?.name || 'N/A',
-          user_email: userProfile?.email || 'N/A',
-          user_phone: userProfile?.phone,
-          account_holder_name: userProfile?.account_holder_name,
-        };
-      }) || [];
-
-      setWithdrawals(formattedWithdrawals);
+      // Tabela withdrawals não existe ainda - retornar lista vazia
+      setWithdrawals([]);
     } catch (error) {
       console.error('Error fetching withdrawals:', error);
       toast.error('Erro ao carregar solicitações de saque');
@@ -83,26 +53,8 @@ export default function AdminWithdrawals() {
   }
 
   const updateWithdrawalStatus = async (withdrawalId: string, newStatus: string) => {
-    try {
-      if (newStatus === 'approved') {
-        const { data, error } = await supabase.functions.invoke('admin-approve-withdrawal', {
-          body: { withdrawalId },
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('withdrawals')
-          .update({ status: newStatus })
-          .eq('id', withdrawalId);
-        if (error) throw error;
-      }
-
-      setWithdrawals(prev => prev.map(w => w.id === withdrawalId ? { ...w, status: newStatus } : w));
-      toast.success(`Saque ${newStatus === 'approved' ? 'aprovado' : 'rejeitado'} com sucesso`);
-    } catch (error) {
-      console.error('Error updating withdrawal status:', error);
-      toast.error('Erro ao atualizar status do saque');
-    }
+    // Funcionalidade não implementada - tabela não existe
+    toast.error('Funcionalidade de saques em desenvolvimento');
   };
 
   const filteredWithdrawals = withdrawals.filter(withdrawal => {
