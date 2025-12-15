@@ -206,9 +206,6 @@ export default function NewProduct() {
           price: price, // Price is already in AOA as integer
           image_url: imageUrl,
           active: true,
-          checkout_background_color: checkoutCustomization.backgroundColor,
-          checkout_text_color: checkoutCustomization.textColor,
-          checkout_button_color: checkoutCustomization.buttonColor,
           checkout_timer_enabled: checkoutCustomization.timerEnabled,
           accepted_payment_methods: acceptedPaymentMethods.length > 0 ? acceptedPaymentMethods : null,
           product_category: formData.product_category || null,
@@ -280,9 +277,8 @@ export default function NewProduct() {
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-6">
                 <Tabs defaultValue="produto" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="produto">Produto</TabsTrigger>
-                    <TabsTrigger value="checkout">Checkout</TabsTrigger>
                     <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
                   </TabsList>
                   
@@ -444,85 +440,7 @@ export default function NewProduct() {
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="checkout" className="space-y-6 mt-6">
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-foreground">Personalização da Página de Checkout</h4>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="backgroundColor">Cor de Fundo</Label>
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            id="backgroundColor"
-                            type="color"
-                            value={checkoutCustomization.backgroundColor}
-                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, backgroundColor: e.target.value }))}
-                            className="w-20 h-10 cursor-pointer"
-                          />
-                          <Input
-                            type="text"
-                            value={checkoutCustomization.backgroundColor}
-                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, backgroundColor: e.target.value }))}
-                            placeholder="#ffffff"
-                            className="flex-1"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="textColor">Cor do Texto</Label>
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            id="textColor"
-                            type="color"
-                            value={checkoutCustomization.textColor}
-                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, textColor: e.target.value }))}
-                            className="w-20 h-10 cursor-pointer"
-                          />
-                          <Input
-                            type="text"
-                            value={checkoutCustomization.textColor}
-                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, textColor: e.target.value }))}
-                            placeholder="#000000"
-                            className="flex-1"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="buttonColor">Cor do Botão</Label>
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            id="buttonColor"
-                            type="color"
-                            value={checkoutCustomization.buttonColor}
-                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, buttonColor: e.target.value }))}
-                            className="w-20 h-10 cursor-pointer"
-                          />
-                          <Input
-                            type="text"
-                            value={checkoutCustomization.buttonColor}
-                            onChange={(e) => setCheckoutCustomization(prev => ({ ...prev, buttonColor: e.target.value }))}
-                            placeholder="#6366f1"
-                            className="flex-1"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label htmlFor="timerEnabled">Ativar Temporizador de Escassez</Label>
-                          <p className="text-sm text-muted-foreground">
-                            Mostra uma contagem regressiva de 15 minutos no checkout
-                          </p>
-                        </div>
-                        <Switch
-                          id="timerEnabled"
-                          checked={checkoutCustomization.timerEnabled}
-                          onCheckedChange={(checked) => setCheckoutCustomization(prev => ({ ...prev, timerEnabled: checked }))}
-                        />
-                      </div>
-                    </div>
-                  </TabsContent>
+                  {/* Timer setting moved to product tab or can be added later */}
                   
                   <TabsContent value="pagamentos" className="space-y-6 mt-6">
                     <div className="space-y-4">

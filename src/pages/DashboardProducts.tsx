@@ -115,12 +115,8 @@ export default function DashboardProducts() {
   const [editName, setEditName] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editBackgroundColor, setEditBackgroundColor] = useState('#ffffff');
-  const [editTextColor, setEditTextColor] = useState('#000000');
-  const [editButtonColor, setEditButtonColor] = useState('#6366f1');
   const [editPixelId, setEditPixelId] = useState('');
   const [editTimerEnabled, setEditTimerEnabled] = useState(false);
-  const [editShowKixicoPayLogo, setEditShowKixicoPayLogo] = useState(true);
   
   // Order Bump states
   const [editOrderBumpEnabled, setEditOrderBumpEnabled] = useState(false);
@@ -264,11 +260,7 @@ export default function DashboardProducts() {
     setEditName(product.name);
     setEditPrice(product.price.toString());
     setEditDescription(product.description || '');
-    setEditBackgroundColor(product.checkout_background_color || '#ffffff');
-    setEditTextColor(product.checkout_text_color || '#000000');
-    setEditButtonColor(product.checkout_button_color || '#6366f1');
     setEditTimerEnabled(product.checkout_timer_enabled || false);
-    setEditShowKixicoPayLogo(product.checkout_show_kixicopay_logo !== false);
     setEditPixelId(product.pixel_id || '');
     setEditingPaymentMethods(
       product.accepted_payment_methods && product.accepted_payment_methods.length > 0 
@@ -342,11 +334,7 @@ export default function DashboardProducts() {
           name: editName, 
           price: price,
           description: editDescription,
-          checkout_background_color: editBackgroundColor,
-          checkout_text_color: editTextColor,
-          checkout_button_color: editButtonColor,
           checkout_timer_enabled: editTimerEnabled,
-          checkout_show_kixicopay_logo: editShowKixicoPayLogo,
           accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
           pixel_id: editPixelId || null,
           order_bump_enabled: editOrderBumpEnabled,
@@ -370,11 +358,7 @@ export default function DashboardProducts() {
               name: editName, 
               price: price, 
               description: editDescription,
-              checkout_background_color: editBackgroundColor,
-              checkout_text_color: editTextColor,
-              checkout_button_color: editButtonColor,
               checkout_timer_enabled: editTimerEnabled,
-              checkout_show_kixicopay_logo: editShowKixicoPayLogo,
               accepted_payment_methods: editingPaymentMethods.length > 0 ? editingPaymentMethods : null,
               pixel_id: editPixelId || null,
             }
@@ -661,9 +645,8 @@ export default function DashboardProducts() {
                                  </DialogHeader>
                                   <div className="space-y-4">
                                      <Tabs defaultValue="produto" className="w-full">
-                                      <TabsList className="grid w-full grid-cols-4">
+                                      <TabsList className="grid w-full grid-cols-3">
                                           <TabsTrigger value="produto">Produto</TabsTrigger>
-                                          <TabsTrigger value="checkout">Checkout</TabsTrigger>
                                           <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
                                           <TabsTrigger value="marketing">Marketing</TabsTrigger>
                                         </TabsList>
@@ -777,92 +760,7 @@ export default function DashboardProducts() {
                                         </div>
                                       </TabsContent>
                                      
-                                      <TabsContent value="checkout" className="space-y-4 mt-4">
-                                        <div className="space-y-2">
-                                          <Label htmlFor="backgroundColor">Cor de Fundo</Label>
-                                          <div className="flex gap-2 items-center">
-                                            <Input
-                                              id="backgroundColor"
-                                              type="color"
-                                              value={editBackgroundColor}
-                                              onChange={(e) => setEditBackgroundColor(e.target.value)}
-                                              className="w-20 h-10 cursor-pointer"
-                                            />
-                                            <Input
-                                              type="text"
-                                              value={editBackgroundColor}
-                                              readOnly
-                                              className="flex-1 text-sm"
-                                            />
-                                          </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                          <Label htmlFor="textColor">Cor do Texto</Label>
-                                          <div className="flex gap-2 items-center">
-                                            <Input
-                                              id="textColor"
-                                              type="color"
-                                              value={editTextColor}
-                                              onChange={(e) => setEditTextColor(e.target.value)}
-                                              className="w-20 h-10 cursor-pointer"
-                                            />
-                                            <Input
-                                              type="text"
-                                              value={editTextColor}
-                                              readOnly
-                                              className="flex-1 text-sm"
-                                            />
-                                          </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                          <Label htmlFor="buttonColor">Cor do Botão</Label>
-                                          <div className="flex gap-2 items-center">
-                                            <Input
-                                              id="buttonColor"
-                                              type="color"
-                                              value={editButtonColor}
-                                              onChange={(e) => setEditButtonColor(e.target.value)}
-                                              className="w-20 h-10 cursor-pointer"
-                                            />
-                                            <Input
-                                              type="text"
-                                              value={editButtonColor}
-                                              readOnly
-                                              className="flex-1 text-sm"
-                                            />
-                                          </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                          <div className="space-y-0.5">
-                                            <Label htmlFor="timerEnabled">Ativar Temporizador de Escassez</Label>
-                                            <p className="text-sm text-muted-foreground">
-                                              Mostra uma contagem regressiva de 15 minutos
-                                            </p>
-                                          </div>
-                                          <Switch
-                                            id="timerEnabled"
-                                            checked={editTimerEnabled}
-                                            onCheckedChange={setEditTimerEnabled}
-                                          />
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                          <div className="space-y-0.5">
-                                            <Label htmlFor="showKixicoPayLogo">Mostrar logotipo da KixicoPay no checkout</Label>
-                                            <p className="text-sm text-muted-foreground">
-                                              Exibir ou ocultar o logotipo da KixicoPay
-                                            </p>
-                                          </div>
-                                          <Switch
-                                            id="showKixicoPayLogo"
-                                            checked={editShowKixicoPayLogo}
-                                            onCheckedChange={setEditShowKixicoPayLogo}
-                                          />
-                                        </div>
-                                       </TabsContent>
+                                      {/* Checkout customization removed - using platform primary color */}
                                       
                                       <TabsContent value="pagamentos" className="space-y-4 mt-4">
                                         <div className="space-y-4">

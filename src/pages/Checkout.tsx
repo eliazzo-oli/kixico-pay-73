@@ -634,11 +634,12 @@ export default function Checkout() {
     );
   }
 
-  // Get customization settings from product
-  const buttonColor = product?.checkout_button_color || 'hsl(var(--primary))';
-  const headerBgColor = product?.checkout_button_color || 'hsl(var(--primary))';
+  // Use always the platform primary color
+  const buttonColor = 'hsl(var(--primary))';
+  const headerBgColor = 'hsl(var(--primary))';
   const timerEnabled = product?.checkout_timer_enabled || false;
-  const showKixicoPayLogo = product?.checkout_show_kixicopay_logo !== false;
+  // Logo always visible
+  const showKixicoPayLogo = true;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
