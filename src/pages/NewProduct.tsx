@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { TrialBanner } from '@/components/TrialBanner';
 import { ArrowLeft, Home, Upload, X } from 'lucide-react';
 
 export default function NewProduct() {
@@ -266,6 +267,7 @@ export default function NewProduct() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        <TrialBanner />
         <div className="max-w-2xl mx-auto">
           <Card className="border-border/50 shadow-elegant">
             <CardHeader>

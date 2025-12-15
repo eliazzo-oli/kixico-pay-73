@@ -1,1 +1,46 @@
-project_id = "pjikrohohwlyghaqgili"
+project_id = "tumanpeywddnixgyfale"
+
+[functions.send-transactional-email]
+verify_jwt = false
+
+[functions.validate-coupon]
+verify_jwt = false
+
+[functions.manage-coupons]
+verify_jwt = true
+
+[functions.process-withdrawal]
+verify_jwt = true
+
+[functions.admin-approve-withdrawal]
+verify_jwt = true
+
+[functions.admin-manual-adjustment]
+verify_jwt = true
+
+[functions.2fa-generate]
+verify_jwt = true
+
+[functions.2fa-enable]
+verify_jwt = true
+
+[functions.2fa-verify]
+verify_jwt = false
+
+[functions.export-transactions]
+verify_jwt = true
+
+[functions.request-password-reset]
+verify_jwt = false
+
+[functions.reset-password]
+verify_jwt = false
+
+[functions.change-password]
+verify_jwt = true
+
+[functions.send-kyc-notification]
+verify_jwt = false
+
+[functions.convert-currency]
+verify_jwt = true

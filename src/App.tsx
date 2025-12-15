@@ -21,11 +21,11 @@ import PaymentReference from "./pages/PaymentReference";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import ProductSalesPage from "./pages/ProductSalesPage";
 import Demo from "./pages/Demo";
-
+import Precos from "./pages/Precos";
 import Produtos from "./pages/Produtos";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
-
+import PlansManagement from "./pages/PlansManagement";
 import Account from "./pages/settings/Account";
 import Financial from "./pages/settings/Financial";
 import Wallet from "./pages/settings/Wallet";
@@ -78,6 +78,7 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/2fa-verify" element={<TwoFactorVerify />} />
               <Route path="/demo" element={<Demo />} />
+              <Route path="/precos" element={<Precos />} />
               <Route path="/produtos" element={<Produtos />} />
               <Route path="/suporte" element={<Support />} />
               <Route path="/desenvolvedores" element={<Desenvolvedores />} />
@@ -115,6 +116,11 @@ const App = () => {
               <Route path="/perfil" element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/plans-management" element={
+                <ProtectedRoute>
+                  <PlansManagement />
                 </ProtectedRoute>
               } />
               <Route path="/apps" element={

@@ -19,7 +19,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[hsl(var(--glass-background))] backdrop-blur-[12px] border-b border-[hsl(var(--glass-border))]">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-3 md:px-4">
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo - Horizontal */}
@@ -39,6 +39,7 @@ export default function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
             <a href="/produtos" className="text-sm text-foreground hover:text-primary transition-colors">Produtos</a>
+            <a href="/precos" className="text-sm text-foreground hover:text-primary transition-colors">Preços</a>
             <a href="/desenvolvedores" className="text-sm text-foreground hover:text-primary transition-colors">Desenvolvedores</a>
             <a href="/suporte" className="text-sm text-foreground hover:text-primary transition-colors">Suporte</a>
           </nav>
@@ -67,6 +68,7 @@ export default function Header() {
           <div className="md:hidden py-3 border-t border-border">
             <nav className="flex flex-col space-y-3">
               <a href="/produtos" className="text-sm text-foreground hover:text-primary transition-colors">Produtos</a>
+              <a href="/precos" className="text-sm text-foreground hover:text-primary transition-colors">Preços</a>
               <a href="/desenvolvedores" className="text-sm text-foreground hover:text-primary transition-colors">Desenvolvedores</a>
               <a href="/suporte" className="text-sm text-foreground hover:text-primary transition-colors">Suporte</a>
               <div className="flex flex-col space-y-2 pt-3">
