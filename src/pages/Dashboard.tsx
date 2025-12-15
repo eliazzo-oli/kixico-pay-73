@@ -15,7 +15,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePlan } from '@/hooks/usePlan';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { TrialBanner } from '@/components/TrialBanner';
 import { SaleNotificationPopup } from '@/components/SaleNotificationPopup';
 import KycBanner from '@/components/KycBanner';
 import { useSaleNotifications } from '@/hooks/useSaleNotifications';
@@ -355,7 +354,6 @@ export default function Dashboard() {
           </header>
 
           <main className="flex-1 p-3 md:p-6">
-            <TrialBanner />
             <KycBanner />
             
             {/* Welcome Section - Compact on mobile */}
@@ -370,33 +368,16 @@ export default function Dashboard() {
               </div>
             )}
             
-            {/* Plan Status Bar - Compact on mobile */}
-            <div className="mb-4 md:mb-6 p-3 md:p-4 bg-primary/5 rounded-lg border border-border/50">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-0">
-                <div>
-                  <h3 className="text-sm md:text-base font-semibold text-foreground">Plano: {getPlanDisplayName(currentPlan)}</h3>
-                  <p className="text-xs md:text-sm text-muted-foreground">
-                    {products.length}/{features.maxProducts === Infinity ? '∞' : features.maxProducts} produtos
-                  </p>
-                  {features.hasAdvancedDashboard && (
-                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                      <Badge variant="default" className="text-[10px] md:text-xs px-1.5 py-0">
-                        <Zap className="h-2.5 w-2.5 mr-0.5" />
-                        Avançado
-                      </Badge>
-                      {features.hasEnterpriseReports && (
-                        <Badge variant="secondary" className="text-[10px] md:text-xs px-1.5 py-0">
-                          <FileText className="h-2.5 w-2.5 mr-0.5" />
-                          Relatórios
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <Button variant="outline" size="sm" onClick={() => navigate('/precos')}>
-                  Upgrade
-                </Button>
-              </div>
+            {/* Action Buttons - Compact on mobile */}
+            <div className="mb-4 md:mb-6 flex flex-wrap gap-2">
+              <Button onClick={handleCreateProduct} size="sm" className="flex-1 md:flex-none">
+                <Plus className="h-3.5 w-3.5 mr-1.5" />
+                Novo Produto
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportTransactions} className="flex-1 md:flex-none">
+                <Download className="h-3.5 w-3.5 mr-1.5" />
+                Exportar
+              </Button>
             </div>
 
             {/* Enhanced Dashboard for Empresarial Plan */}

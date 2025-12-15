@@ -85,14 +85,14 @@ export function DashboardSidebar() {
 
   const getNavClassName = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium border-r-2 border-primary' 
-      : 'hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground';
+      ? 'bg-sidebar-accent text-[hsl(var(--sidebar-foreground-active))] font-medium border-r-2 border-primary' 
+      : 'text-[hsl(var(--sidebar-foreground))] hover:bg-sidebar-accent/50 hover:text-[hsl(var(--sidebar-foreground-active))]';
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarContent className="bg-sidebar border-r border-sidebar-border">
+      <SidebarContent className="bg-[hsl(var(--glass-background))] backdrop-blur-[12px] border-r border-[hsl(var(--glass-border))]">
         {/* Logo/Brand - Horizontal */}
-        <div className="p-4 border-b border-sidebar-border">
+        <div className="p-4 border-b border-[hsl(var(--glass-border))]">
           <div className="flex items-center justify-between">
             <button 
               onClick={() => navigate('/dashboard')}
@@ -115,7 +115,7 @@ export function DashboardSidebar() {
             {sidebarState !== 'collapsed' && (
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors"
+                className="p-1 rounded-md hover:bg-sidebar-accent text-[hsl(var(--sidebar-foreground))] hover:text-[hsl(var(--sidebar-foreground-active))] transition-colors"
                 aria-label="Fechar sidebar"
               >
                 <X className="h-4 w-4" />
@@ -136,7 +136,7 @@ export function DashboardSidebar() {
                       end={item.url === '/dashboard'}
                       className={getNavClassName}
                     >
-                      <item.icon className="w-4 h-4" />
+                      <item.icon className="w-4 h-4" strokeWidth={1.5} />
                       {sidebarState !== 'collapsed' && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
